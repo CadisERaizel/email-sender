@@ -1,0 +1,1 @@
+Hi $NAME , this is test mail for bulk sending
