@@ -1,13 +1,29 @@
-// main.js
-
-// Modules to control application life and create native browser window
-const { app, BrowserWindow } = require("electron");
+const { app, BrowserWindow, ipcMain } = require("electron");
 const path = require("node:path");
+const Store = require("electron-store");
+const { spawn } = require("child_process");
+const process = require('node:process');
+
+const store = new Store();
+
+var devProc
+
+function getUsers(e) {
+  let userAccounts;
+  if (store.has("userAccounts")) {
+    userAccounts = store.get("userAccounts");
+    console.log("The key exists in the store.");
+  } else {
+    userAccounts = store.set("userAccounts", []);
+    console.log("The key does not exist in the store.");
+  }
+  return userAccounts;
+}
 
 const createWindow = () => {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    title:"Email Sender",
+    title: "Email Sender",
     width: 800,
     height: 600,
     webPreferences: {
@@ -21,14 +37,36 @@ const createWindow = () => {
   mainWindow.loadURL("http://localhost:3000");
 
   // Open the DevTools.
-   mainWindow.webContents.openDevTools()
+  mainWindow.webContents.openDevTools();
 };
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
+  ipcMain.handle("get-users", getUsers);
   createWindow();
+
+  devProc = spawn("sh ./run_server.sh", {
+    detached: true,
+    shell: true,
+  });
+  var scriptOutput = "";
+  devProc.stdout.setEncoding("utf8");
+  devProc.stdout.on("data", function (data) {
+    console.log("stdout: " + data);
+
+    data = data.toString();
+    scriptOutput += data;
+  });
+
+  devProc.stderr.setEncoding("utf8");
+  devProc.stderr.on("data", function (data) {
+    console.log("stderr: " + data);
+
+    data = data.toString();
+    scriptOutput += data;
+  });
 
   app.on("activate", () => {
     // On macOS it's common to re-create a window in the app when the
@@ -41,7 +79,9 @@ app.whenReady().then(() => {
 // for applications and their menu bar to stay active until the user quits
 // explicitly with Cmd + Q.
 app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") app.quit();
+  if (process.platform !== "darwin") {
+    app.quit();
+  }
 });
 
 // In this file you can include the rest of your app's specific main process

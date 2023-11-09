@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from "react";
 import "quill/dist/quill.snow.css";
 import ReactQuill from "react-quill";
-import { Select, Option, Button } from "@material-tailwind/react";
+import { Select, Option, Button, Input } from "@material-tailwind/react";
 import { PlusIcon } from "@heroicons/react/24/outline";
 
 const TemplateScreen = (props) => {
   const templateKey = props.templateKey;
   const [selectedKey, setSelectedKey] = useState(null);
   const [templateContent, setTemplateContent] = useState("");
+  const template = props.template;
+  const setTemplate = props.setTemplate;
   var modules = {
     toolbar: [
       ["bold", "italic", "underline", "strike"], // toggled buttons
@@ -19,7 +21,7 @@ const TemplateScreen = (props) => {
       [{ direction: "rtl" }], // text direction
 
       [{ size: ["small", false, "large", "huge"] }], // custom dropdown
-    //   [{ header: [1, 2, 3, 4, 5, 6, false] }],
+      //   [{ header: [1, 2, 3, 4, 5, 6, false] }],
 
       [{ color: [] }, { background: [] }], // dropdown with defaults from theme
       [{ font: [] }],
@@ -36,7 +38,6 @@ const TemplateScreen = (props) => {
     "italic",
     "underline",
     "strike",
-    "blockquote",
     "list",
     "color",
     "bullet",
@@ -47,11 +48,12 @@ const TemplateScreen = (props) => {
     "size",
   ];
 
-  useEffect(() => {},[selectedKey])
+  useEffect(()=>{}, [selectedKey])
 
   const handleProcedureContentChange = (content) => {
     console.log("content---->", content);
     setTemplateContent(content);
+    setTemplate({ ...template, body: content });
   };
 
   const handleClick = () => {
@@ -59,12 +61,8 @@ const TemplateScreen = (props) => {
       console.log("nothing selected");
     } else {
       setTemplateContent(templateContent + `{${selectedKey}}`);
+      setTemplate({ ...template, body: templateContent + `{${selectedKey}}` });
     }
-  };
-
-  const handleSelectChange = (e) => {
-    setSelectedKey(e);
-    console.log(selectedKey)
   };
 
   return (
@@ -84,7 +82,7 @@ const TemplateScreen = (props) => {
               })
             }
             value={selectedKey}
-            onChange={handleSelectChange}
+            onChange={(e) => setSelectedKey(e)}
           >
             {templateKey.map((key) => (
               <Option key={key.toString()} value={key.toString()}>
@@ -102,6 +100,18 @@ const TemplateScreen = (props) => {
             <PlusIcon strokeWidth={2} className="h-4 w-4" />
           </Button>
         </div>
+      </div>
+      <div className="mb-2">
+        <Input
+          type="text"
+          placeholder="Subject"
+          onChange={(e) => {
+            setTemplate({
+              ...template,
+              subject: e.target.value,
+            });
+          }}
+        />
       </div>
       <ReactQuill
         theme="snow"

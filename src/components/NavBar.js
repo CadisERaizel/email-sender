@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Navbar,
   Typography,
@@ -8,10 +8,14 @@ import {
   Select,
   Option,
 } from "@material-tailwind/react";
-import { BellIcon, Cog6ToothIcon } from "@heroicons/react/24/solid";
+import axios from "axios";
 
 export function TopNavBar() {
   const [showAccount, SetShowAccount] = useState(false);
+
+  useEffect(() => {
+    window.electronAPI.users().then((users) => console.log(users))
+  },[])
 
   return (
     <Navbar

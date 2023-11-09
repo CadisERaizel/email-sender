@@ -5,9 +5,11 @@ import * as XLSX from "xlsx";
 export default function ExcelPage(props) {
   const setTemplateKey = props.setTemplateKey;
   const [excelData, setExcelData] = useState(null);
-
+  const excel = props.excel;
+  const setExcel = props.setExcel;
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
+    setExcel(file)
 
     if (file) {
       const reader = new FileReader();
