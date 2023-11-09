@@ -7,21 +7,33 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
 from email import encoders
+from openpyxl import load_workbook
+from io import BytesIO
+from database import *
+import pandas as pd
 
-
-def get_msg(csv_file_path, template):
-    with open(csv_file_path, 'r') as file:
-        headers = file.readline().split(',')
-        headers[len(headers) - 1] = headers[len(headers) - 1][:-1]
-    # i am opening the csv file two times above and below INTENTIONALLY, changing will cause error
-    with open(csv_file_path, 'r') as file:
-        data = csv.DictReader(file)
-        for row in data:
-            required_string = template
-            for header in headers:
-                value = row[header]
-                required_string = required_string.replace(f'${header}', value)
-            yield row['EMAIL'], required_string
+async def get_msg(xlsxFile, template):
+    content = await xlsxFile.read()
+    df = pd.read_excel(BytesIO(content), header=0)
+    data = df.to_dict(orient='records')
+    headers = df.columns.tolist()
+    # workbook = load_workbook(filename=BytesIO(content), data_only=True)
+    # sheet = workbook.active
+    # data = []
+    # for row in sheet.iter_rows(values_only=True):
+    #     data.append(row)
+    # headers = list(data[0])
+    # data.pop(0)
+    print(data)
+    print(headers)
+    for row in data:
+        body_string = template.body
+        subject_string = template.subject
+        for index, header in enumerate(headers):
+            value = row[header]
+            body_string = body_string.replace(f'{{{header}}}', value)
+            subject_string = subject_string.replace(f'{{{header}}}', value)
+        yield row['EMAIL'], body_string, subject_string
 
 
 def confirm_attachments():
@@ -44,16 +56,15 @@ def confirm_attachments():
         print('No ATTACH directory found...')
 
 
-def send_emails(server: SMTP, template):
+async def send_emails(server: SMTP, template, xlsxFile):
 
     attachments = confirm_attachments()
     sent_count = 0
 
-    for receiver, message in get_msg('data.csv', template):
-
+    async for receiver, message, subject in get_msg(xlsxFile, template):
         multipart_msg = MIMEMultipart("alternative")
 
-        multipart_msg["Subject"] = message.splitlines()[0]
+        multipart_msg["Subject"] = subject
         multipart_msg["From"] = DISPLAY_NAME + f' <{SENDER_EMAIL}>'
         multipart_msg["To"] = receiver
 
@@ -88,12 +99,9 @@ def send_emails(server: SMTP, template):
     print(f"Sent {sent_count} emails")
 
 
-if __name__ == "__main__":
+async def mail_controller(template, xlsxFile):
     host = "smtp.office365.com"
     port = 587  # TLS replaced SSL in 1999
-
-    with open('compose.md') as f:
-        template = f.read()
 
     server = SMTP(host=host, port=port)
     server.connect(host=host, port=port)
@@ -102,9 +110,11 @@ if __name__ == "__main__":
     server.ehlo()
     server.login(user=SENDER_EMAIL, password=PASSWORD)
 
-    send_emails(server, template)
+    await send_emails(server, template, xlsxFile)
 
     server.quit()
+    print("MAIL SEND")
+    return {"message": "succeeded"}
 
 
 # AAHNIK 2020
