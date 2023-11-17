@@ -1,9 +1,9 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, EmailStr
 
 class User(BaseModel):
     first_name : str
     last_name : str
-    email : str
+    email : EmailStr
     password : str
 
 class Template(BaseModel):

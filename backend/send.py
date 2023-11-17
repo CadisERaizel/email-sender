@@ -1,18 +1,17 @@
-import csv
 import os
-from settings import SENDER_EMAIL, PASSWORD, DISPLAY_NAME
+import time
 from smtplib import SMTP
 import markdown
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
 from email import encoders
-from openpyxl import load_workbook
+import requests
 from io import BytesIO
-from database import *
+from utils.database import *
 import pandas as pd
 
-async def get_msg(xlsxFile, template):
+async def get_msg(xlsxFile, template, emailKey):
     content = await xlsxFile.read()
     df = pd.read_excel(BytesIO(content), header=0)
     data = df.to_dict(orient='records')
@@ -24,8 +23,6 @@ async def get_msg(xlsxFile, template):
     #     data.append(row)
     # headers = list(data[0])
     # data.pop(0)
-    print(data)
-    print(headers)
     for row in data:
         body_string = template.body
         subject_string = template.subject
@@ -33,7 +30,7 @@ async def get_msg(xlsxFile, template):
             value = row[header]
             body_string = body_string.replace(f'{{{header}}}', value)
             subject_string = subject_string.replace(f'{{{header}}}', value)
-        yield row['EMAIL'], body_string, subject_string
+        yield row[emailKey], body_string, subject_string
 
 
 def confirm_attachments():
@@ -56,65 +53,106 @@ def confirm_attachments():
         print('No ATTACH directory found...')
 
 
-async def send_emails(server: SMTP, template, xlsxFile):
+async def send_emails(server: SMTP, user, template, xlsxFile, HUNTER_API, verify, interval, emailKey):
 
     attachments = confirm_attachments()
     sent_count = 0
 
-    async for receiver, message, subject in get_msg(xlsxFile, template):
-        multipart_msg = MIMEMultipart("alternative")
+    async for receiver, message, subject in get_msg(xlsxFile, template, emailKey):
+        if verify:
+            response = requests.get(f"https://api.hunter.io/v2/email-verifier?email={receiver}&api_key={HUNTER_API}")
+            response = response.json()
+            if(response["data"]["status"] =="valid"):
+                multipart_msg = MIMEMultipart("alternative")
+                sender_email = user['email']
 
-        multipart_msg["Subject"] = subject
-        multipart_msg["From"] = DISPLAY_NAME + f' <{SENDER_EMAIL}>'
-        multipart_msg["To"] = receiver
+                multipart_msg["Subject"] = subject
+                multipart_msg["From"] = user["full_name"] + f' <{sender_email}>'
+                multipart_msg["To"] = receiver
 
-        text = message
-        html = markdown.markdown(text)
+                text = message
+                html = markdown.markdown(text)
 
-        part1 = MIMEText(text, "plain")
-        part2 = MIMEText(html, "html")
+                part1 = MIMEText(text, "plain")
+                part2 = MIMEText(html, "html")
 
-        multipart_msg.attach(part1)
-        multipart_msg.attach(part2)
+                multipart_msg.attach(part1)
+                multipart_msg.attach(part2)
 
-        if attachments:
-            for content, name in zip(attachments['contents'], attachments['names']):
-                attach_part = MIMEBase('application', 'octet-stream')
-                attach_part.set_payload(content)
-                encoders.encode_base64(attach_part)
-                attach_part.add_header('Content-Disposition',
-                                       f"attachment; filename={name}")
-                multipart_msg.attach(attach_part)
+                if attachments:
+                    for content, name in zip(attachments['contents'], attachments['names']):
+                        attach_part = MIMEBase('application', 'octet-stream')
+                        attach_part.set_payload(content)
+                        encoders.encode_base64(attach_part)
+                        attach_part.add_header('Content-Disposition',
+                                            f"attachment; filename={name}")
+                        multipart_msg.attach(attach_part)
 
-        try:
-            server.sendmail(SENDER_EMAIL, receiver,
-                            multipart_msg.as_string())
-        except Exception as err:
-            print(f'Problem occurend while sending to {receiver} ')
-            print(err)
-            input("PRESS ENTER TO CONTINUE")
-        else:
-            sent_count += 1
+                try:
+                    server.sendmail(sender_email, receiver,
+                                    multipart_msg.as_string())
+                except Exception as err:
+                    print(f'Problem occurend while sending to {receiver} ')
+                    print(err)
+                else:
+                    sent_count += 1
+        else: 
+            multipart_msg = MIMEMultipart("alternative")
+            sender_email = user['email']
 
-    print(f"Sent {sent_count} emails")
+            multipart_msg["Subject"] = subject
+            multipart_msg["From"] = user["full_name"] + f' <{sender_email}>'
+            multipart_msg["To"] = receiver
+
+            text = message
+            html = markdown.markdown(text)                
+
+            part1 = MIMEText(text, "plain")
+            part2 = MIMEText(html, "html")
+
+            multipart_msg.attach(part1)
+            multipart_msg.attach(part2)
+
+            if attachments:
+                for content, name in zip(attachments['contents'], attachments['names']):
+                    attach_part = MIMEBase('application', 'octet-stream')
+                    attach_part.set_payload(content)
+                    encoders.encode_base64(attach_part)
+                    attach_part.add_header('Content-Disposition',
+                                        f"attachment; filename={name}")
+                    multipart_msg.attach(attach_part)
+
+            try:
+                server.sendmail(sender_email, receiver,
+                                multipart_msg.as_string())
+            except Exception as err:
+                print(f'Problem occurend while sending to {receiver} ')
+                print(err)
+                input("PRESS ENTER TO CONTINUE")
+            else:
+                sent_count += 1
+        time.sleep(interval)
+
+    return sent_count
 
 
-async def mail_controller(template, xlsxFile):
+async def mail_controller(user, template, xlsxFile, HUNTER_API, verify, interval, emailKey):
     host = "smtp.office365.com"
     port = 587  # TLS replaced SSL in 1999
+
 
     server = SMTP(host=host, port=port)
     server.connect(host=host, port=port)
     server.ehlo()
     server.starttls()
     server.ehlo()
-    server.login(user=SENDER_EMAIL, password=PASSWORD)
+    server.login(user=user["email"], password=user["password"])
 
-    await send_emails(server, template, xlsxFile)
+    count = await send_emails(server, user, template, xlsxFile, HUNTER_API, verify, interval, emailKey)
 
     server.quit()
     print("MAIL SEND")
-    return {"message": "succeeded"}
+    return count
 
 
 # AAHNIK 2020

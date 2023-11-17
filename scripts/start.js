@@ -31,8 +31,7 @@ class Starter {
 
         // Start & identify React & Electron processes
         spawn("cross-env BROWSER=none react-scripts start", spawnOptions.showLogs);
-        spawn("wait-on tcp:3000 && electron .", spawnOptions.showLogs);
-
+        spawn("wait-on http://127.0.0.1:3000 && electron .", spawnOptions.showLogs);
         // Kill processes on exit
         const exitOnEvent = (event) => {
             // process.once(event, () => {

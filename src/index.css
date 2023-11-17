@@ -1,3 +1,22 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.border-gradient {
+  border-image: linear-gradient(to right, #4B5563 50%, transparent 50%) 100% 1;
+}
+
+.button-background {
+  background: linear-gradient(to right, green 50%, gray 50%);
+  background-size: 200% 100%;
+  animation: fill-up .5s ease-out;
+}
+
+@keyframes fill-up {
+  0% {
+    background-position: right bottom;
+  }
+  100% {
+    background-position: left bottom;
+  }
+}

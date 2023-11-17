@@ -1,68 +1,38 @@
-import React, { useEffect, useState } from "react";
-import "quill/dist/quill.snow.css";
-import ReactQuill from "react-quill";
-import { Select, Option, Button, Input } from "@material-tailwind/react";
+import React, { useEffect, useState, createRef } from "react";
+import {
+  Select, Option, Button, Input, Menu,
+  MenuHandler,
+  MenuList,
+  MenuItem,
+} from "@material-tailwind/react";
 import { PlusIcon } from "@heroicons/react/24/outline";
+import Editor from "../components/Editor";
 
 const TemplateScreen = (props) => {
   const templateKey = props.templateKey;
   const [selectedKey, setSelectedKey] = useState(null);
-  const [templateContent, setTemplateContent] = useState("");
   const template = props.template;
   const setTemplate = props.setTemplate;
-  var modules = {
-    toolbar: [
-      ["bold", "italic", "underline", "strike"], // toggled buttons
-      ["blockquote", "code-block"],
-      [{ header: 1 }, { header: 2 }], // custom button values
-      [{ list: "ordered" }, { list: "bullet" }],
-      [{ script: "sub" }, { script: "super" }], // superscript/subscript
-      [{ indent: "-1" }, { indent: "+1" }], // outdent/indent
-      [{ direction: "rtl" }], // text direction
+  const subject = props.subject
+  const setSubject = props.setSubject
+  const myEditorRef = createRef()
 
-      [{ size: ["small", false, "large", "huge"] }], // custom dropdown
-      //   [{ header: [1, 2, 3, 4, 5, 6, false] }],
+  function insertText() {
+    // Access the MyComponent instance using the ref
+    const myComponentInstance = myEditorRef.current;
 
-      [{ color: [] }, { background: [] }], // dropdown with defaults from theme
-      [{ font: [] }],
-      [{ align: [] }],
+    // Check if the ref is defined to avoid errors
+    if (myComponentInstance) {
+      myComponentInstance.insertText(selectedKey);
+    }
+  }
 
-      ["clean"],
-    ],
-  };
-
-  var formats = [
-    "header",
-    "height",
-    "bold",
-    "italic",
-    "underline",
-    "strike",
-    "list",
-    "color",
-    "bullet",
-    "indent",
-    "link",
-    "image",
-    "align",
-    "size",
-  ];
-
-  useEffect(()=>{}, [selectedKey])
+  function insertTextSubject() {
+    setSubject(subject + `{${selectedKey}}`)
+  }
 
   const handleProcedureContentChange = (content) => {
-    console.log("content---->", content);
-    setTemplateContent(content);
-    setTemplate({ ...template, body: content });
-  };
-
-  const handleClick = () => {
-    if (selectedKey == null) {
-      console.log("nothing selected");
-    } else {
-      setTemplateContent(templateContent + `{${selectedKey}}`);
-      setTemplate({ ...template, body: templateContent + `{${selectedKey}}` });
-    }
+    setTemplate(()=>content);
   };
 
   return (
@@ -81,7 +51,6 @@ const TemplateScreen = (props) => {
                   "flex items-center opacity-100 px-0 gap-2 pointer-events-none text-black",
               })
             }
-            value={selectedKey}
             onChange={(e) => setSelectedKey(e)}
           >
             {templateKey.map((key) => (
@@ -92,35 +61,35 @@ const TemplateScreen = (props) => {
           </Select>
         </div>
         <div className="col-span-1">
-          <Button
-            className="flex items-center gap-3"
-            size="md"
-            onClick={handleClick}
-          >
-            <PlusIcon strokeWidth={2} className="h-4 w-4" />
-          </Button>
+          <Menu placement="right-start">
+            <MenuHandler>
+              <Button
+                className="flex items-center gap-3 bg-light-blue-500"
+                size="md"
+              >
+                <PlusIcon strokeWidth={2} className="h-4 w-4 bg-light-blue-500" />
+              </Button>
+            </MenuHandler>
+            <MenuList>  
+              <MenuItem onClick={insertText}>Add to body</MenuItem>
+              <MenuItem onClick={insertTextSubject}>Add to Subject</MenuItem>
+            </MenuList>
+          </Menu>
         </div>
       </div>
       <div className="mb-2">
         <Input
           type="text"
           placeholder="Subject"
+          value={subject}
           onChange={(e) => {
-            setTemplate({
-              ...template,
-              subject: e.target.value,
-            });
+            setSubject(e.target.value)
           }}
         />
       </div>
-      <ReactQuill
-        theme="snow"
-        modules={modules}
-        formats={formats}
-        value={templateContent}
-        onChange={handleProcedureContentChange}
-        style={{ height: "calc(100vh - 100px)", color: "black" }}
-      ></ReactQuill>
+      <div className="h-[calc(100vh-300px)] xl:h-[calc(100vh-300px)] text-black">
+        <Editor ref={myEditorRef} handleChange={handleProcedureContentChange} />
+      </div>
     </>
   );
 };

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Card, Typography } from "@material-tailwind/react";
 import * as XLSX from "xlsx";
 
@@ -32,12 +32,15 @@ export default function ExcelPage(props) {
       reader.readAsArrayBuffer(file);
     }
   };
+  
+  useEffect(()=>{
 
+  }, [excelData])
   return (
     <>
-      <input type="file" accept=".xlsx" onChange={handleFileUpload} />
+      <input type="file" accept=".xlsx" className="mb-5" onChange={handleFileUpload} />
       {excelData && (
-        <Card className="h-full w-full overflow-scroll">
+        <Card className="h-[calc(100vh-100px)] xl:h-[calc(100vh-260px)] rounded-none w-full overflow-scroll">
           <table className="w-full min-w-max table-auto text-left">
             <thead>
               <tr>
