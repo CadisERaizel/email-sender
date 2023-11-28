@@ -92,9 +92,9 @@ export function TopNavBar(props) {
 
   return (
     <Navbar
-      variant="gradient"
-      color="grey"
-      className=" max-w-full rounded-none px-4 py-3 mb-4 bg-gray-800"
+      // variant="gradient"
+      // color="grey"
+      className=" max-w-full rounded-none px-4 py-3 m-0 bg-[#233d4d]"
     >
       <div className="flex flex-wrap items-center justify-between gap-y-4 text-white">
         <Typography

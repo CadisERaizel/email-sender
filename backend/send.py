@@ -10,6 +10,9 @@ import requests
 from io import BytesIO
 from utils.database import *
 import pandas as pd
+import datetime
+import urllib, base64
+from uuid import uuid4
 
 async def get_msg(xlsxFile, template, emailKey):
     content = await xlsxFile.read()
@@ -59,6 +62,12 @@ async def send_emails(server: SMTP, user, template, xlsxFile, HUNTER_API, verify
     sent_count = 0
 
     async for receiver, message, subject in get_msg(xlsxFile, template, emailKey):
+        id = str(uuid4())
+        code = f"id={id}&&campaign=123"
+        base64_encoded_message = base64.b64encode(code.encode()).decode()
+        combined_encoded_message = urllib.parse.quote(base64_encoded_message)
+        message += f"<img src='http:127.0.0.1:55555/image/{combined_encoded_message}' alt='Not found' style='display:none'/>"
+
         if verify:
             response = requests.get(f"https://api.hunter.io/v2/email-verifier?email={receiver}&api_key={HUNTER_API}")
             response = response.json()
@@ -91,6 +100,13 @@ async def send_emails(server: SMTP, user, template, xlsxFile, HUNTER_API, verify
                 try:
                     server.sendmail(sender_email, receiver,
                                     multipart_msg.as_string())
+                    create_email({
+                        "id": id,
+                        "email": receiver,
+                        "subject": subject,
+                        "sent_from": sender_email,
+                        "sent_at": datetime.datetime.utcnow()
+                    })
                 except Exception as err:
                     print(f'Problem occurend while sending to {receiver} ')
                     print(err)
@@ -103,7 +119,8 @@ async def send_emails(server: SMTP, user, template, xlsxFile, HUNTER_API, verify
             multipart_msg["Subject"] = subject
             multipart_msg["From"] = user["full_name"] + f' <{sender_email}>'
             multipart_msg["To"] = receiver
-
+            
+            
             text = message
             html = markdown.markdown(text)                
 
@@ -125,6 +142,13 @@ async def send_emails(server: SMTP, user, template, xlsxFile, HUNTER_API, verify
             try:
                 server.sendmail(sender_email, receiver,
                                 multipart_msg.as_string())
+                create_email({
+                        "id": id,
+                        "email": receiver,
+                        "subject": subject,
+                        "sent_from": sender_email,
+                        "sent_at": datetime.datetime.utcnow()
+                    })
             except Exception as err:
                 print(f'Problem occurend while sending to {receiver} ')
                 print(err)
@@ -132,7 +156,6 @@ async def send_emails(server: SMTP, user, template, xlsxFile, HUNTER_API, verify
             else:
                 sent_count += 1
         time.sleep(interval)
-
     return sent_count
 
 
