@@ -428,7 +428,7 @@ def delete_email(email_id):
 
 def list_emails(is_opened):
     if is_opened:
-        query = 'SELECT * FROM emails_sent WHERE read_mail = 1 ORDER BY sent_at DESC'
+        query = 'SELECT * FROM emails_sent WHERE read_mail = TRUE ORDER BY sent_at DESC'
     else:
         query = 'SELECT * FROM emails_sent ORDER BY sent_at DESC'
     result = execute_query(query, (), fetch_all=True)
