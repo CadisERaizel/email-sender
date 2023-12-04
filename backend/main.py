@@ -9,7 +9,10 @@ from PIL import Image
 import uvicorn
 import urllib, base64
 import os
+from dotenv import load_dotenv
 import pandas as pd
+
+load_dotenv()
 
 app = FastAPI()
 origins = ["*"]  # Replace "*" with the origins you want to allow, e.g., "http://localhost:3000"
@@ -21,8 +24,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-migrate()
-HUNTER_API = "84329842b743101040b2d6f233371e050b86d4f0"
+# migrate()
+HUNTER_API = os.environ.get("HUNTER_API_KEY")
 
 @app.post("/send-mails/")
 async def mails(user : int, verify:bool, interval: int, emailKey: str, template: Template = Depends(), xlsxFile : UploadFile = File(...)) :

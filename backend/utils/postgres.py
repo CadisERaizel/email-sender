@@ -1,22 +1,33 @@
-import sqlite3
-import pathlib
-import sys
-import os
+import psycopg2
 import uuid
+import os
+import sys
+from dotenv import load_dotenv
+
+load_dotenv()
+
+db = os.environ.get('DATABASE_NAME')
+user = os.environ.get('DATABASE_USER')
+password = os.environ.get('DATABASE_PASSWORD')
+host = os.environ.get('DATABASE_HOST')
+port = os.environ.get('DATABASE_PORT')
 
 def get_db_connection():
-    conn = sqlite3.connect('local.sqlite')
-    conn.row_factory = sqlite3.Row
+    conn = psycopg2.connect(
+        dbname=db,
+        user=user,
+        password=password,
+        host=host,
+        port=port
+    )
+    conn.autocommit = True  # Auto commit to apply changes immediately
     return conn
 
 def resource_path(relative_path):
-    """ Get absolute path to resource, works for dev and for PyInstaller """
     try:
-        # PyInstaller creates a temp folder and stores path in _MEIPASS
         base_path = sys._MEIPASS
     except Exception:
         base_path = os.path.abspath(".")
- 
     return os.path.join(base_path, relative_path)
 
 def migrate():
@@ -28,37 +39,31 @@ def migrate():
             with open(file_path) as file:
                 try:
                     sql_queries = file.read()
-                    cursor.executescript(sql_queries)
-                    conn.commit()
-                except sqlite3.Error as error:
+                    cursor.execute(sql_queries)
+                except psycopg2.Error as error:
                     print(error)
 
 def execute_query(query, params=(), fetch_all=None):
     with get_db_connection() as conn:
         cursor = conn.cursor()
         try:
-            if fetch_all == None:
-                cursor.execute(query, params)
-                conn.commit()
-            elif fetch_all:
-                cursor.execute(query)
-                conn.commit()
+            cursor.execute(query, params)
+            if fetch_all:
                 return cursor.fetchall()
+            elif fetch_all is None:
+                return None
             else:
-                cursor.execute(query, params)
-                conn.commit()
                 return cursor.fetchone()
-        except sqlite3.Error as error:
+        except psycopg2.Error as error:
             print(error)
             raise
-
 
 def create_user(user):
     try:
         user_dict = user.dict()
         query = '''
             INSERT INTO users (first_name, last_name, email, password)
-            VALUES (?, ?, ?, ?)
+            VALUES (%s, %s, %s, %s)
         '''
         execute_query(query, (user_dict['first_name'], user_dict['last_name'], user_dict['email'], user_dict['password']))
         return "User created successfully"
@@ -66,7 +71,7 @@ def create_user(user):
         raise ve
 
 def get_user(user_id):
-    query = 'SELECT * FROM users WHERE id = ?'
+    query = 'SELECT * FROM users WHERE id = %s'
     result = execute_query(query, (user_id,), fetch_all=False)
     user_data = result
     if user_data:
@@ -85,8 +90,8 @@ def update_user(user_id, updated_user):
         updated_user_dict = updated_user.dict()
         query = '''
             UPDATE users
-            SET first_name = ?, last_name = ?, email = ?, password = ?
-            WHERE id = ?
+            SET first_name = %s, last_name = %s, email = %s, password = %s
+            WHERE id = %s
         '''
         execute_query(query, (updated_user_dict['first_name'], updated_user_dict['last_name'], updated_user_dict['email'], updated_user_dict['password'], user_id))
         return "User updated successfully"
@@ -94,7 +99,7 @@ def update_user(user_id, updated_user):
         raise ve
 
 def delete_user(user_id):
-    query = 'DELETE FROM users WHERE id = ?'
+    query = 'DELETE FROM users WHERE id = %s'
     execute_query(query, (user_id,))
     return "User deleted successfully"
 
@@ -113,19 +118,19 @@ def list_users():
     return user_list
 
 def create_campaign(campaign_name, start_date, start_time, status, template_id):
-    campaign_id = str(uuid.uuid4()) 
+    campaign_id = str(uuid.uuid4())
     query = '''
         INSERT INTO campaigns (id, campaign_name, start_date, start_time, status, template_id)
-        VALUES (?, ?, ?, ?, ?, ?)
+        VALUES (%s, %s, %s, %s, %s, %s)
     '''
-    execute_query(query, (campaign_id, campaign_name, str(start_date), str(start_time), status, template_id))
+    execute_query(query, (campaign_id, campaign_name, start_date, start_time, status, template_id))
     return campaign_id
 
 def get_campaign(campaign_id):
     query = '''
         SELECT id, campaign_name, start_date, start_time, status, template_id
         FROM campaigns
-        WHERE id = ?
+        WHERE id = %s
     '''
     campaign_info = execute_query(query, (campaign_id,), fetch_all=False)
     if campaign_info is not None:
@@ -144,8 +149,8 @@ def get_campaign(campaign_id):
 def update_campaign(campaign_id, campaign_name, start_date, start_time, status, template_id):
     query = '''
         UPDATE campaigns
-        SET campaign_name = ?, start_date = ?, start_time = ?, status = ?, template_id = ?
-        WHERE id = ?
+        SET campaign_name = %s, start_date = %s, start_time = %s, status = %s, template_id = %s
+        WHERE id = %s
     '''
     execute_query(query, (campaign_name, start_date, start_time, status, template_id, campaign_id))
     return "Campaign updated successfully"
@@ -153,19 +158,17 @@ def update_campaign(campaign_id, campaign_name, start_date, start_time, status, 
 def delete_campaign(campaign_id):
     query = '''
         DELETE FROM campaigns
-        WHERE campaign_id = ?
+        WHERE id = %s
     '''
     execute_query(query, (campaign_id,))
     return "Campaign deleted successfully"
 
 def get_all_campaigns():
-    
-    query='''
+    query = '''
         SELECT id, campaign_name, start_date, start_time, status, template_id
         FROM campaigns
     '''
     campaigns = execute_query(query, (), fetch_all=True)
-    # Convert the result into a list of dictionaries for easier use
     campaigns_list = []
     for campaign_info in campaigns:
         campaign_dict = {
@@ -177,12 +180,10 @@ def get_all_campaigns():
             "template_id": campaign_info[5]
         }
         campaigns_list.append(campaign_dict)
-
     return campaigns_list
 
 def get_campaign_info_with_recipients(campaign_id):
-    # Fetch campaign information including recipients from the database
-    query='''
+    query = '''
         SELECT
             campaigns.id as campaign_id,
             campaign_name,
@@ -195,10 +196,9 @@ def get_campaign_info_with_recipients(campaign_id):
             recipient_email
         FROM campaigns
         LEFT JOIN recipients ON campaigns.id = recipients.campaign_id
-        WHERE campaigns.id = ?
+        WHERE campaigns.id = %s
     '''
-
-    rows = execute_query(query, (campaign_id), fetch_all=True)
+    rows = execute_query(query, (campaign_id,), fetch_all=True)
 
     if rows:
         campaign_info = {
@@ -224,11 +224,10 @@ def get_campaign_info_with_recipients(campaign_id):
     else:
         return None
 
-
 def create_recipient(campaign_id, email, first_name=None, last_name=None, status="Subscribed"):
     query = '''
         INSERT INTO recipients (campaign_id, email, first_name, last_name, status)
-        VALUES (?, ?, ?, ?, ?)
+        VALUES (%s, %s, %s, %s, %s)
     '''
     execute_query(query, (campaign_id, email, first_name, last_name, status))
     return "Recipient created successfully"
@@ -236,47 +235,43 @@ def create_recipient(campaign_id, email, first_name=None, last_name=None, status
 def get_recipient(recipient_id):
     query = '''
         SELECT * FROM recipients
-        WHERE recipient_id = ?
+        WHERE recipient_id = %s
     '''
     return execute_query(query, (recipient_id,), fetch_all=False)
 
 def update_recipient(recipient_id, updated_recipient):
     query = '''
         UPDATE recipients
-        SET campaign_id = ?, email = ?, first_name = ?, last_name = ?, status = ?
-        WHERE recipient_id = ?
+        SET campaign_id = %s, email = %s, first_name = %s, last_name = %s, status = %s
+        WHERE recipient_id = %s
     '''
-    execute_query(query, (updated_recipient['campaign_id'], updated_recipient['email'], 
-                          updated_recipient['first_name'], updated_recipient['last_name'], 
+    execute_query(query, (updated_recipient['campaign_id'], updated_recipient['email'],
+                          updated_recipient['first_name'], updated_recipient['last_name'],
                           updated_recipient['status'], recipient_id))
     return "Recipient updated successfully"
 
 def delete_recipient(recipient_id):
     query = '''
         DELETE FROM recipients
-        WHERE recipient_id = ?
+        WHERE recipient_id = %s
     '''
-    execute_query(query, (recipient_id))
+    execute_query(query, (recipient_id,))
     return "Recipient deleted successfully"
 
 def save_upload_file(filename, path, file_id, upload_time):
-    # Insert file information into the database
-   query='''
+    query = '''
         INSERT INTO files (id, filename, path, upload_time)
-        VALUES (?, ?, ?, ?)
+        VALUES (%s, %s, %s, %s)
     '''
-   
-   execute_query(query, (file_id, filename, path, upload_time))
-
+    execute_query(query, (file_id, filename, path, upload_time))
 
 def get_all_files():
-    # Fetch all files from the database
     query = '''
         SELECT id, filename, upload_time
         FROM files
     '''
     result = execute_query(query, (), fetch_all=True)
-    
+
     files_list = []
     for file_info in result:
         file_dict = {
@@ -290,14 +285,13 @@ def get_all_files():
     return files_list
 
 def get_file_by_id(file_id):
-    query='''
+    query = '''
         SELECT id, filename, path, upload_time
         FROM files
-        WHERE id = ?
+        WHERE id = %s
     '''
     file_info = execute_query(query, (file_id,), fetch_all=False)
 
-    # Check if the file was found
     if file_info is not None:
         file_dict = {
             "id": file_info[0],
@@ -311,17 +305,17 @@ def get_file_by_id(file_id):
 
 def create_email_template(template_name, subject, body):
     try:
-        template_id = str(uuid.uuid4())  # Generate a new UUID for the template
+        template_id = str(uuid.uuid4())
         query = '''
             INSERT INTO email_templates (id, template_name, subject, body)
-            VALUES (?, ?, ?, ?)
+            VALUES (%s, %s, %s, %s)
         '''
         execute_query(query, (template_id, template_name, subject, body))
         return {
             "template_id": template_id,
             "message": "Email template created successfully"
         }
-    except sqlite3.Error as error:
+    except psycopg2.Error as error:
         print(error)
         raise
 
@@ -332,7 +326,6 @@ def get_all_email_templates():
     '''
     templates = execute_query(query, fetch_all=True)
 
-    # Convert the result into a list of dictionaries for easier use
     templates_list = []
     for template_info in templates:
         template_dict = {
@@ -349,11 +342,10 @@ def get_email_template_by_id(template_id):
     query = '''
         SELECT id, template_name, subject, body
         FROM email_templates
-        WHERE id = ?
+        WHERE id = %s
     '''
     template_info = execute_query(query, (template_id,), fetch_all=False)
 
-    # Check if the email template was found
     if template_info:
         template_dict = {
             "id": template_info[0],
@@ -370,8 +362,8 @@ def get_email_template_by_id(template_id):
 def update_email_template(template_id, template_name, subject, body):
     query = '''
         UPDATE email_templates
-        SET template_name = ?, subject = ?, body = ?
-        WHERE id = ?
+        SET template_name = %s, subject = %s, body = %s
+        WHERE id = %s
     '''
     execute_query(query, (template_name, subject, body, template_id))
     return {
@@ -381,7 +373,7 @@ def update_email_template(template_id, template_name, subject, body):
 def delete_email_template(template_id):
     query = '''
         DELETE FROM email_templates
-        WHERE id = ?
+        WHERE id = %s
     '''
     execute_query(query, (template_id,))
     return {
@@ -392,16 +384,16 @@ def create_email(email_data):
     try:
         query = '''
             INSERT INTO emails_sent (id, email, subject, sent_from, sent_at)
-            VALUES (?, ?, ?, ?, ?)
+            VALUES (%s, %s, %s, %s, %s)
         '''
         execute_query(query, (email_data['id'], email_data['email'], email_data['subject'], email_data['sent_from'], email_data['sent_at']))
         return "Email created successfully"
     except ValueError as ve:
         raise ve
 
-def get_email(id):
-    query = 'SELECT * FROM emails_sent WHERE id = ?'
-    result = execute_query(query, (id,), fetch_all=False)
+def get_email(email_id):
+    query = 'SELECT * FROM emails_sent WHERE id = %s'
+    result = execute_query(query, (email_id,), fetch_all=False)
     email_data = result
     if email_data:
         email_dict = {
@@ -417,27 +409,26 @@ def get_email(id):
     else:
         return None
 
-def update_email(id, updated_email):
+def update_email(email_id, updated_email):
     try:
-        updated_email_dict = updated_email
         query = '''
             UPDATE emails_sent
-            SET email = ?, subject = ?, sent_from = ?, sent_at = ?, read_mail = ?, notification_popped = ?
-            WHERE id = ?
+            SET email = %s, subject = %s, sent_from = %s, sent_at = %s, read_mail = %s, notification_popped = %s
+            WHERE id = %s
         '''
-        execute_query(query, (updated_email_dict['email'], updated_email_dict['subject'], updated_email_dict['sent_from'], updated_email_dict['sent_at'], updated_email_dict['read_mail'], updated_email_dict['notification_popped'], id))
+        execute_query(query, (updated_email['email'], updated_email['subject'], updated_email['sent_from'], updated_email['sent_at'], updated_email['read_mail'], updated_email['notification_popped'], email_id))
         return "Email updated successfully"
     except ValueError as ve:
         raise ve
 
 def delete_email(email_id):
-    query = 'DELETE FROM emails_sent WHERE id = ?'
+    query = 'DELETE FROM emails_sent WHERE id = %s'
     execute_query(query, (email_id,))
     return "Email deleted successfully"
 
 def list_emails(is_opened):
     if is_opened:
-        query = 'SELECT * FROM emails_sent where read_mail = 1 ORDER BY sent_at DESC' 
+        query = 'SELECT * FROM emails_sent WHERE read_mail = 1 ORDER BY sent_at DESC'
     else:
         query = 'SELECT * FROM emails_sent ORDER BY sent_at DESC'
     result = execute_query(query, (), fetch_all=True)
@@ -454,4 +445,4 @@ def list_emails(is_opened):
             'notification_popped': email_data[6]
         }
         email_list.append(email_dict)
-    return emails_data
+    return email_list

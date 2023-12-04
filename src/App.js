@@ -26,7 +26,6 @@ function App() {
                 <Route path="/panel" element={<PanelScreen selectedUser={selectedUser} />} />
               </Routes>
             </div>
-
           </BrowserRouter>
         </div>
       </div>

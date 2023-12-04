@@ -8,7 +8,7 @@ from email.mime.base import MIMEBase
 from email import encoders
 import requests
 from io import BytesIO
-from utils.database import *
+from utils.postgres import *
 import pandas as pd
 import datetime
 import urllib, base64
@@ -66,7 +66,7 @@ async def send_emails(server: SMTP, user, template, xlsxFile, HUNTER_API, verify
         code = f"id={id}&&campaign=123"
         base64_encoded_message = base64.b64encode(code.encode()).decode()
         combined_encoded_message = urllib.parse.quote(base64_encoded_message)
-        message += f"<img src='http:127.0.0.1:55555/image/{combined_encoded_message}' alt='Not found' style='display:none'/>"
+        message += f"<img src='http://192.168.0.229:55555/image/{combined_encoded_message}' alt='Not found' style='display:none'/>"
 
         if verify:
             response = requests.get(f"https://api.hunter.io/v2/email-verifier?email={receiver}&api_key={HUNTER_API}")
