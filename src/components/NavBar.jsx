@@ -15,8 +15,9 @@ import axios from "axios";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import { ReactComponent as Loader } from "../assets/svgs/loader.svg"
 import { ReactComponent as Tick } from "../assets/svgs/tick.svg"
+import { API_URL } from "../config/defaults";
 
-const API_BASE_URL = 'http://localhost:55555';
+const API_BASE_URL = API_URL;
 
 
 export function TopNavBar(props) {

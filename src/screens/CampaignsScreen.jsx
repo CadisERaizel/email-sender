@@ -8,8 +8,8 @@ import {
     Card,
     Button
 } from "@material-tailwind/react";
-import { useCampaignStore } from '../hooks/Campaigns';
-import { useEmailStore } from '../hooks/EmailStore';
+import { useNavigate } from 'react-router-dom';
+import { useCampaignStore, useEmailStore } from '../states/index';
 import { PlusIcon, PaperAirplaneIcon } from '@heroicons/react/24/outline';
 import { BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, PieChart, Pie } from 'recharts';
 import ListComponent from '../components/ListComponent';
@@ -19,6 +19,7 @@ import { AlertDismissible } from '../components/Alert';
 
 
 const CampaignsScreen = () => {
+    const navigate = useNavigate()
 
     const Bardata = [
         {
@@ -174,9 +175,9 @@ const CampaignsScreen = () => {
             <div className='w-3/4 h-[calc(100vh-200px)]'>
                 <div className='w-full h-11 flex flex-row-reverse'>
                     <div className='flex gap-4'>
-                        <Button size='sm' color="blue" className="flex items-center gap-3" variant="filled">Quick Send
+                        <Button size='sm' color="blue" className="flex items-center gap-3" variant="filled" onClick={()=>navigate('/panel')}>Quick Send
                             <PaperAirplaneIcon className='h-5 w-5' /></Button>
-                        <Button size='sm' color="blue" className="flex items-center gap-3" variant="outlined">Create a Campaign
+                        <Button size='sm' color="blue" className="flex items-center gap-3" variant="outlined" onClick={()=>navigate('/panel')}>Create a Campaign
                             <PlusIcon className='h-6 w-6' />
                         </Button>
                     </div>

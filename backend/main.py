@@ -26,6 +26,7 @@ app.add_middleware(
 )
 # migrate()
 HUNTER_API = os.environ.get("HUNTER_API_KEY")
+GRAPH_API_URL = os.environ.get("GRAPH_API_URL")
 
 @app.post("/send-mails/")
 async def mails(user : int, verify:bool, interval: int, emailKey: str, template: Template = Depends(), xlsxFile : UploadFile = File(...)) :
@@ -227,6 +228,17 @@ def remove_email(email_id: str):
 def list_emails_route(is_opened: bool | None = None):
     emails = list_emails(is_opened)
     return emails
+
+@app.get("/inbox")
+def inbox(access_token: str):
+    # Use the access token to make a request to Microsoft Graph API to get messages from the inbox folder
+    headers = {'Authorization': f'Bearer {access_token}'}
+    response = requests.get(GRAPH_API_URL+'/inbox/messages', headers=headers)
+    # if(response.status_code == 401){
+
+    # }
+    messages = response.json().get('value', [])
+    return messages
 
 @app.get("/")
 def read_root():

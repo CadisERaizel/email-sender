@@ -1,35 +1,26 @@
-import { TopNavBar } from "./components/NavBar";
-import React, { useEffect, useState } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import SideBar from "./components/SideBar";
-import PanelScreen from "./screens/PanelScreen";
-import CampaignsScreen from "./screens/CampaignsScreen";
-
+import React, { useEffect } from "react";
+import { BrowserRouter, HashRouter, Routes, Route, Link } from "react-router-dom";
+import LoginScreen from "./screens/LoginScreen";
+import PrivateRoute from "./PrivateRoute";
+import { useMsal } from "@azure/msal-react";
 
 function App() {
-  const [selectedUser, setSelectedUser] = useState(null)
+  const { accounts } = useMsal();
+  const isAuthenticated = accounts.length > 0;
 
+  useEffect(() => {
+    console.log(isAuthenticated);
+  }, [isAuthenticated]);
   return (
-    <>
-      <div className="flex flex-col">
-
-        <TopNavBar setSelectedUser={setSelectedUser} />
-        <div className="flex">
-          <div>
-          </div>
-
-          <BrowserRouter>
-            <SideBar />
-            <div className="mt-4 p-4 w-full">
-              <Routes>
-                <Route path="/" element={<CampaignsScreen />} />
-                <Route path="/panel" element={<PanelScreen selectedUser={selectedUser} />} />
-              </Routes>
-            </div>
-          </BrowserRouter>
-        </div>
-      </div>
-    </>
+    <HashRouter>
+      {isAuthenticated ?
+        (<PrivateRoute />
+        ) : (
+          <Routes>
+            <Route path="/" element={<LoginScreen />} />
+            <Route path="/logout" element={<LoginScreen />} />
+          </Routes>)}
+    </HashRouter>
   );
 }
 

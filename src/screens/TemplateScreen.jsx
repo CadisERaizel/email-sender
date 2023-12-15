@@ -13,7 +13,7 @@ import {
 } from "@material-tailwind/react";
 import { PlusIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import Editor from "../components/Editor"
-import { useTemplateStore } from "../hooks/TemplateStore";
+import { useTemplateStore } from "../states/index";
 
 const TemplateScreen = (props) => {
   const templates = useTemplateStore()

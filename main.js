@@ -69,34 +69,34 @@ app.whenReady().then(() => {
   ipcMain.handle("get-users", getUsers);
   createWindow();
   if (isDevMode) {
-    // if (process.platform === 'win32') {
-    //   devProc = spawn(`uvicorn main:app --host 0.0.0.0 --port 55555 --reload`, {
-    //     detached: true,
-    //     shell: true,
-    //     cwd: backendFolder
-    //   });
-    // } else {
-    //   devProc = spawn("sh ./run_server.sh", {
-    //     detached: true,
-    //     shell: true,
-    //   });
-    // }
-    // var scriptOutput = "";
-    // devProc.stdout.setEncoding("utf8");
-    // devProc.stdout.on("data", function (data) {
-    //   console.log("stdout: " + data);
+    if (process.platform === 'win32') {
+      devProc = spawn(`uvicorn main:app --host 0.0.0.0 --port 5555 --reload`, {
+        detached: true,
+        shell: true,
+        cwd: backendFolder
+      });
+    } else {
+      devProc = spawn("sh ./run_server.sh", {
+        detached: true,
+        shell: true,
+      });
+    }
+    var scriptOutput = "";
+    devProc.stdout.setEncoding("utf8");
+    devProc.stdout.on("data", function (data) {
+      console.log("stdout: " + data);
 
-    //   data = data.toString();
-    //   scriptOutput += data;
-    // });
+      data = data.toString();
+      scriptOutput += data;
+    });
 
-    // devProc.stderr.setEncoding("utf8");
-    // devProc.stderr.on("data", function (data) {
-    //   console.log("stderr: " + data);
+    devProc.stderr.setEncoding("utf8");
+    devProc.stderr.on("data", function (data) {
+      console.log("stderr: " + data);
 
-    //   data = data.toString();
-    //   scriptOutput += data;
-    // });
+      data = data.toString();
+      scriptOutput += data;
+    });
   } else {
     // Dynamic script assignment for starting Python in production
     const runPython = {

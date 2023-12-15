@@ -18,3 +18,25 @@ window.addEventListener('DOMContentLoaded', () => {
   contextBridge.exposeInMainWorld('electronAPI', {
     users: () => ipcRenderer.invoke('get-users').then(result => result)
   })
+
+  const { remote } = require('electron');
+
+  function minimize() {
+    const window = remote.getCurrentWindow();
+    window.minimize();
+  }
+  
+  function maximize() {
+    const window = remote.getCurrentWindow();
+    if (window.isMaximized()) {
+      window.unmaximize();
+    } else {
+      window.maximize();
+    }
+  }
+  
+  function closeWindow() {
+    const window = remote.getCurrentWindow();
+    window.close();
+  }
+  
