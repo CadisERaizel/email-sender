@@ -1,12 +1,18 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, UUID4
 from datetime import date, time, datetime
 from dataclasses import dataclass
 
 class User(BaseModel):
-    first_name : str
-    last_name : str
-    email : EmailStr
-    password : str
+    id: UUID4
+    display_name: str
+    email: str
+    access_token: str
+    refresh_token: str
+    login_type: str
+    is_admin: bool
+
+class AssociatedUser(BaseModel):
+    associated_user: str
 
 class Template(BaseModel):
     # name: str
@@ -53,3 +59,9 @@ class EmailSent(BaseModel):
     email: str
     subject: str
     sent_from: str
+
+class DataLink(BaseModel):
+    dataLink: str
+
+class UserInfo(BaseModel):
+    access_token: str

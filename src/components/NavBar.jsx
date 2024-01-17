@@ -13,83 +13,93 @@ import {
 } from "@material-tailwind/react";
 import axios from "axios";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
-import { ReactComponent as Loader } from "../assets/svgs/loader.svg"
-import { ReactComponent as Tick } from "../assets/svgs/tick.svg"
+import { ReactComponent as Loader } from "../assets/svgs/loader.svg";
+import { ReactComponent as Tick } from "../assets/svgs/tick.svg";
 import { API_URL } from "../config/defaults";
+import { getUserId } from "../apis/apis";
 
 const API_BASE_URL = API_URL;
-
 
 export function TopNavBar(props) {
   const [userAccounts, setUserAccounts] = useState([]);
   const [open, setOpen] = useState(false);
-  const [showPassword, setShowPassword] = useState(false)
-  const [addingUser, setAddingUser] = useState(false)
-  const [addedUser, setAddedUser] = useState(false)
-  const setSelectedUser = props.setSelectedUser
+  const [showPassword, setShowPassword] = useState(false);
+  const [addingUser, setAddingUser] = useState(false);
+  const [addedUser, setAddedUser] = useState(false);
+  const setSelectedUser = props.setSelectedUser;
   const [newUser, setNewUser] = useState({
-    first_name: '',
-    last_name: '',
-    email: '',
-    password: ''
-  })
-
+    first_name: "",
+    last_name: "",
+    email: "",
+    password: "",
+  });
 
   const handleChange = (e) => {
-    setNewUser({ ...newUser, [e.target.name]: e.target.value })
-  }
+    setNewUser({ ...newUser, [e.target.name]: e.target.value });
+  };
 
-  const handleOpen = () => setOpen((cur) => !cur);
+  const handleOpen = async () => {
+    window.open(
+      `//localhost:5555/add-account/`,
+      "_blank",
+      "width=450,height=500"
+    );
+  };
+
+  const handleLogout = () => {
+    window.location.href = "http://localhost:5555/logout";
+  };
 
   const fetchUsers = async () => {
     try {
       const response = await axios.get(`${API_BASE_URL}/list-users/`);
       setUserAccounts(response.data);
-      console.log(response.data)
+      console.log(response.data);
     } catch (error) {
-      console.error('Error fetching users:', error);
+      console.error("Error fetching users:", error);
     }
   };
 
   const addUser = async (user) => {
     try {
       var response = await axios.post(`${API_BASE_URL}/add-user/`, user);
-      return response
+      return response;
     } catch (error) {
-      return error
+      return error;
     }
   };
 
   const handleAddAccount = async () => {
-    setAddingUser(true)
-    if (!Object.values(newUser).some(value => value === '')) {
-      var response = await addUser(newUser)
-      fetchUsers()
-      console.log(newUser)
-      console.log(response)
-      if (response.status === 200) {
-        setAddingUser(false)
-        setAddedUser(true)
-        setTimeout(() => {
-          setOpen((cur) => !cur)
-          setAddedUser(false)
-          setAddingUser(false)
-          setNewUser({
-            first_name: '',
-            last_name: '',
-            email: '',
-            password: ''
-          })
-        }, 1500)
-      }
-    } else {
-      console.log("not empty")
-    }
-  }
+    // setAddingUser(true);
+    // if (!Object.values(newUser).some((value) => value === "")) {
+    //   var response = await addUser(newUser);
+    //   fetchUsers();
+    //   console.log(newUser);
+    //   console.log(response);
+    //   if (response.status === 200) {
+    //     setAddingUser(false);
+    //     setAddedUser(true);
+    //     setTimeout(() => {
+    //       setOpen((cur) => !cur);
+    //       setAddedUser(false);
+    //       setAddingUser(false);
+    //       setNewUser({
+    //         first_name: "",
+    //         last_name: "",
+    //         email: "",
+    //         password: "",
+    //       });
+    //     }, 1500);
+    //   }
+    // } else {
+    //   console.log("not empty");
+    // }
+    window.open("www.google.com", "Popup", "width=400,height=400");
+  };
 
   useEffect(() => {
-    fetchUsers()
-  }, [])
+    fetchUsers();
+  }, []);
 
   return (
     <Navbar
@@ -119,23 +129,31 @@ export function TopNavBar(props) {
                     "flex items-center opacity-100 px-0 gap-2 pointer-events-none text-white",
                 })
               }
-              onChange={(e)=>{setSelectedUser(e)}}
+              onChange={(e) => {
+                setSelectedUser(e);
+              }}
             >
               {userAccounts.map((user) => (
                 <Option key={user.id.toString()} value={user.id.toString()}>
-                  {user.full_name}
+                  {user.display_name}
                 </Option>
               ))}
-              {/* <Option key={'1'} value={'1'}>Rohith Raj</Option>
-              <Option key={'2'} value={'2'}>Matt</Option>
-              <Option key={'3'} value={'3'}>John</Option> */}
             </Select>
           </div>
           <Button
             className="flex items-center gap-1 bg-blue-gray-400"
             size="sm"
             onClick={handleOpen}
-          >Add Account
+          >
+            Add Account
+            {/* <PlusIcon strokeWidth={2} className="h-5 w-5 rounded-full bg-light-blue-500" /> */}
+          </Button>
+          <Button
+            className="flex items-center gap-1 bg-blue-gray-400"
+            size="sm"
+            onClick={handleLogout}
+          >
+            logout
             {/* <PlusIcon strokeWidth={2} className="h-5 w-5 rounded-full bg-light-blue-500" /> */}
           </Button>
         </div>
@@ -161,15 +179,33 @@ export function TopNavBar(props) {
             <Typography className="-mb-2" variant="h6">
               Your First Name
             </Typography>
-            <Input label="First Name" size="lg" name="first_name" value={newUser.first_name} onChange={handleChange} />
+            <Input
+              label="First Name"
+              size="lg"
+              name="first_name"
+              value={newUser.first_name}
+              onChange={handleChange}
+            />
             <Typography className="-mb-2" variant="h6">
               Your Last Name
             </Typography>
-            <Input label="Last Name" size="lg" name="last_name" value={newUser.last_name} onChange={handleChange} />
+            <Input
+              label="Last Name"
+              size="lg"
+              name="last_name"
+              value={newUser.last_name}
+              onChange={handleChange}
+            />
             <Typography className="-mb-2" variant="h6">
               Your Email
             </Typography>
-            <Input label="Email" size="lg" name="email" value={newUser.email} onChange={handleChange} />
+            <Input
+              label="Email"
+              size="lg"
+              name="email"
+              value={newUser.email}
+              onChange={handleChange}
+            />
             <Typography className="-mb-2" variant="h6">
               Your Password
             </Typography>
@@ -192,13 +228,37 @@ export function TopNavBar(props) {
                 className="!absolute right-1 top-1 rounded"
                 onClick={() => setShowPassword(!showPassword)}
               >
-                {showPassword ? <EyeIcon strokeWidth={2} className="h-4 w-4" /> : <EyeSlashIcon strokeWidth={2} className="h-4 w-4" />}
+                {showPassword ? (
+                  <EyeIcon strokeWidth={2} className="h-4 w-4" />
+                ) : (
+                  <EyeSlashIcon strokeWidth={2} className="h-4 w-4" />
+                )}
               </Button>
             </div>
           </CardBody>
           <CardFooter className="pt-0">
-            <Button className={`flex items-center gap-1 justify-center ${addedUser ? "button-background" : ""}`} disabled={addedUser ? true : false} color="" onClick={handleAddAccount} fullWidth>
-              {addingUser ? (<><Loader />Adding...</>) : addedUser ? (<><Tick fill="white" className="w-[20px] h-[20px] -mt-[1px]" />Success</>) : "Add Account"}
+            <Button
+              className={`flex items-center gap-1 justify-center ${
+                addedUser ? "button-background" : ""
+              }`}
+              disabled={addedUser ? true : false}
+              color=""
+              onClick={handleAddAccount}
+              fullWidth
+            >
+              {addingUser ? (
+                <>
+                  <Loader />
+                  Adding...
+                </>
+              ) : addedUser ? (
+                <>
+                  <Tick fill="white" className="w-[20px] h-[20px] -mt-[1px]" />
+                  Success
+                </>
+              ) : (
+                "Add Account"
+              )}
             </Button>
           </CardFooter>
         </Card>

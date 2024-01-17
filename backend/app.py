@@ -60,7 +60,6 @@ def profile():
 @app.route('/mail')
 def mail():
     # Use the access token to make a request to Microsoft Graph API to get mail folders
-    print(session["access_token"])
     headers = {'Authorization': f'Bearer {session["access_token"]}'}
     response = requests.get('https://graph.microsoft.com/v1.0/me/mailFolders', headers=headers)
     folders = response.json().get('value', [])

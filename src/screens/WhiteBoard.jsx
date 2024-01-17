@@ -82,6 +82,7 @@ const WhiteBoard = () => {
     }
 
     return (
+        <div className='w-full h-full overflow-auto'>
         <DragDropContext onDragEnd={onDragEnd}>
             <Droppable droppableId='all-columns' direction='horizontal' type='column'>
                 {(provided) => (
@@ -97,6 +98,7 @@ const WhiteBoard = () => {
                 )}
             </Droppable>
         </DragDropContext>
+        </div>
     );
 };
 

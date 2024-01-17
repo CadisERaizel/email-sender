@@ -8,7 +8,7 @@ from email.mime.base import MIMEBase
 from email import encoders
 import requests
 from io import BytesIO
-from utils.postgres import *
+from utils.postgres_sqlalchemy import *
 import pandas as pd
 import datetime
 import urllib, base64
