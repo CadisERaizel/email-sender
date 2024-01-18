@@ -13,10 +13,10 @@ const SideBar = () => {
   // const navigate = useNavigate()
   return (
     <Card className="h-full w-full max-w-[5rem] p-4 pl-0 pr-0 justify-center rounded-none shadow-2xl shadow-blue-gray-900/20">
-      <List className="min-w-0 gap-8">
+      <List className="min-w-0 gap-8 text-[#8bc34a]">
         <Link to="/inbox">
           <ListItem className="justify-center">
-            <InboxIcon className="h-7 w-7" />
+            <InboxIcon className="h-7 w-7 " />
           </ListItem>
         </Link>
         <Link to="/">

@@ -9,103 +9,46 @@ import {
   Card,
   CardBody,
   CardFooter,
+  Avatar,
   Input,
+  Menu,
+  MenuHandler,
+  MenuList,
+  MenuItem,
 } from "@material-tailwind/react";
+import {
+  ChevronDownIcon,
+  UserPlusIcon,
+  LifebuoyIcon,
+  PowerIcon,
+} from "@heroicons/react/24/solid";
 import axios from "axios";
-import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
-import { ReactComponent as Loader } from "../assets/svgs/loader.svg";
-import { ReactComponent as Tick } from "../assets/svgs/tick.svg";
 import { API_URL } from "../config/defaults";
-import { getUserId } from "../apis/apis";
 
 const API_BASE_URL = API_URL;
 
 export function TopNavBar(props) {
   const [userAccounts, setUserAccounts] = useState([]);
-  const [open, setOpen] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [addingUser, setAddingUser] = useState(false);
-  const [addedUser, setAddedUser] = useState(false);
   const setSelectedUser = props.setSelectedUser;
-  const [newUser, setNewUser] = useState({
-    first_name: "",
-    last_name: "",
-    email: "",
-    password: "",
-  });
-
-  const handleChange = (e) => {
-    setNewUser({ ...newUser, [e.target.name]: e.target.value });
-  };
-
-  const handleOpen = async () => {
-    window.open(
-      `//localhost:5555/add-account/`,
-      "_blank",
-      "width=450,height=500"
-    );
-  };
-
-  const handleLogout = () => {
-    window.location.href = "http://localhost:5555/logout";
-  };
-
-  const fetchUsers = async () => {
-    try {
-      const response = await axios.get(`${API_BASE_URL}/list-users/`);
-      setUserAccounts(response.data);
-      console.log(response.data);
-    } catch (error) {
-      console.error("Error fetching users:", error);
-    }
-  };
-
-  const addUser = async (user) => {
-    try {
-      var response = await axios.post(`${API_BASE_URL}/add-user/`, user);
-      return response;
-    } catch (error) {
-      return error;
-    }
-  };
-
-  const handleAddAccount = async () => {
-    // setAddingUser(true);
-    // if (!Object.values(newUser).some((value) => value === "")) {
-    //   var response = await addUser(newUser);
-    //   fetchUsers();
-    //   console.log(newUser);
-    //   console.log(response);
-    //   if (response.status === 200) {
-    //     setAddingUser(false);
-    //     setAddedUser(true);
-    //     setTimeout(() => {
-    //       setOpen((cur) => !cur);
-    //       setAddedUser(false);
-    //       setAddingUser(false);
-    //       setNewUser({
-    //         first_name: "",
-    //         last_name: "",
-    //         email: "",
-    //         password: "",
-    //       });
-    //     }, 1500);
-    //   }
-    // } else {
-    //   console.log("not empty");
-    // }
-    window.open("www.google.com", "Popup", "width=400,height=400");
-  };
 
   useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await axios.get(`${API_BASE_URL}/list-users/`);
+        setUserAccounts(response.data);
+        console.log(response.data);
+      } catch (error) {
+        console.error("Error fetching users:", error);
+      }
+    };
     fetchUsers();
   }, []);
 
   return (
     <Navbar
-      // variant="gradient"
-      // color="grey"
-      className=" max-w-full rounded-none px-4 py-3 m-0 bg-[#233d4d]"
+      variant="filled"
+      color="light-green"
+      className=" max-w-full rounded-none px-4 py-3 m-0"
     >
       <div className="flex flex-wrap items-center justify-between gap-y-4 text-white">
         <Typography
@@ -116,153 +59,107 @@ export function TopNavBar(props) {
         >
           Codetru
         </Typography>
-        <div className="relative flex w-full gap-2 md:w-max">
-          <div className="w-auto">
-            <Select
-              color="teal"
-              label="Account"
-              selected={(element) =>
-                element &&
-                React.cloneElement(element, {
-                  disabled: true,
-                  className:
-                    "flex items-center opacity-100 px-0 gap-2 pointer-events-none text-white",
-                })
-              }
-              onChange={(e) => {
-                setSelectedUser(e);
-              }}
-            >
-              {userAccounts.map((user) => (
-                <Option key={user.id.toString()} value={user.id.toString()}>
-                  {user.display_name}
-                </Option>
-              ))}
-            </Select>
-          </div>
-          <Button
-            className="flex items-center gap-1 bg-blue-gray-400"
-            size="sm"
-            onClick={handleOpen}
-          >
-            Add Account
-            {/* <PlusIcon strokeWidth={2} className="h-5 w-5 rounded-full bg-light-blue-500" /> */}
-          </Button>
-          <Button
-            className="flex items-center gap-1 bg-blue-gray-400"
-            size="sm"
-            onClick={handleLogout}
-          >
-            logout
-            {/* <PlusIcon strokeWidth={2} className="h-5 w-5 rounded-full bg-light-blue-500" /> */}
-          </Button>
+        <div>
+          <ProfileMenu />
         </div>
       </div>
-      <Dialog
-        size="xs"
-        open={open}
-        handler={handleOpen}
-        className="bg-transparent shadow-none"
-      >
-        <Card className="mx-auto w-full max-w-[24rem]">
-          <CardBody className="flex flex-col gap-4">
-            <Typography variant="h4" color="blue-gray">
-              New Account
-            </Typography>
-            <Typography
-              className="font-normal"
-              variant="paragraph"
-              color="gray"
-            >
-              Enter your email and password.
-            </Typography>
-            <Typography className="-mb-2" variant="h6">
-              Your First Name
-            </Typography>
-            <Input
-              label="First Name"
-              size="lg"
-              name="first_name"
-              value={newUser.first_name}
-              onChange={handleChange}
-            />
-            <Typography className="-mb-2" variant="h6">
-              Your Last Name
-            </Typography>
-            <Input
-              label="Last Name"
-              size="lg"
-              name="last_name"
-              value={newUser.last_name}
-              onChange={handleChange}
-            />
-            <Typography className="-mb-2" variant="h6">
-              Your Email
-            </Typography>
-            <Input
-              label="Email"
-              size="lg"
-              name="email"
-              value={newUser.email}
-              onChange={handleChange}
-            />
-            <Typography className="-mb-2" variant="h6">
-              Your Password
-            </Typography>
-            <div className="relative flex w-full max-w-[24rem]">
-              <Input
-                name="password"
-                type={showPassword ? "text" : "password"}
-                label="Password"
-                value={newUser.password}
-                onChange={handleChange}
-                className="pr-20"
-                containerProps={{
-                  className: "min-w-0",
-                }}
-              />
-              <Button
-                size="sm"
-                color={newUser.password ? "blue" : "blue-gray"}
-                disabled={!newUser.password}
-                className="!absolute right-1 top-1 rounded"
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? (
-                  <EyeIcon strokeWidth={2} className="h-4 w-4" />
-                ) : (
-                  <EyeSlashIcon strokeWidth={2} className="h-4 w-4" />
-                )}
-              </Button>
-            </div>
-          </CardBody>
-          <CardFooter className="pt-0">
-            <Button
-              className={`flex items-center gap-1 justify-center ${
-                addedUser ? "button-background" : ""
-              }`}
-              disabled={addedUser ? true : false}
-              color=""
-              onClick={handleAddAccount}
-              fullWidth
-            >
-              {addingUser ? (
-                <>
-                  <Loader />
-                  Adding...
-                </>
-              ) : addedUser ? (
-                <>
-                  <Tick fill="white" className="w-[20px] h-[20px] -mt-[1px]" />
-                  Success
-                </>
-              ) : (
-                "Add Account"
-              )}
-            </Button>
-          </CardFooter>
-        </Card>
-      </Dialog>
     </Navbar>
   );
+}
+
+
+const ProfileMenu = () => {
+
+  const handleLogout = () => {
+    closeMenu()
+    window.location.href = "http://localhost:5555/logout";
+  };
+
+  const handleAddAccount = async () => {
+    closeMenu()
+    window.open(
+      `//localhost:5555/add-account/`,
+      "_blank",
+      "width=550,height=600"
+    );
+  };
+
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+ 
+  const closeMenu = () => setIsMenuOpen(false);
+
+  const profileMenuItems = [
+    {
+      label: "Help",
+      icon: LifebuoyIcon,
+      action: () => {closeMenu()}
+    },
+    {
+      label: "Add Account",
+      icon: UserPlusIcon,
+      action: handleAddAccount
+    },
+    {
+      label: "Sign Out",
+      icon: PowerIcon,
+      action: handleLogout
+    },
+  ];
+
+  return (
+    <Menu open={isMenuOpen} handler={setIsMenuOpen} placement="bottom-end">
+      <MenuHandler>
+        <Button
+          variant="text"
+          color="blue-gray"
+          className="flex items-center gap-1 rounded-full py-0.5 pr-2 pl-0.5 lg:ml-auto"
+        >
+          <Avatar
+            variant="circular"
+            size="sm"
+            alt="tania andrew"
+            className="border border-grey-100 p-0.5"
+            src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80"
+          />
+          <ChevronDownIcon
+            strokeWidth={2.5}
+            color="white"
+            className={`h-3 w-3 transition-transform ${
+              isMenuOpen ? "rotate-180" : ""
+            }`}
+          />
+        </Button>
+      </MenuHandler>
+      <MenuList className="p-1">
+        {profileMenuItems.map(({ label, icon, action }, key) => {
+          const isLastItem = key === profileMenuItems.length - 1;
+          return (
+            <MenuItem
+              key={label}
+              onClick={() => action()}
+              className={`flex items-center gap-2 rounded ${
+                isLastItem
+                  ? "hover:bg-red-500/10 focus:bg-red-500/10 active:bg-red-500/10"
+                  : ""
+              }`}
+            >
+              {React.createElement(icon, {
+                className: `h-4 w-4 ${isLastItem ? "text-red-500" : ""}`,
+                strokeWidth: 2,
+              })}
+              <Typography
+                as="span"
+                variant="small"
+                className="font-normal"
+                color={isLastItem ? "red" : "inherit"}
+              >
+                {label}
+              </Typography>
+            </MenuItem>
+          );
+        })}
+      </MenuList>
+    </Menu>
+  );
+
 }

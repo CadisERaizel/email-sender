@@ -41,7 +41,7 @@ auth = MSALAuthorization(client_config=config, return_to_path='/login')
 app_msal = msal.ConfidentialClientApplication(
     config.client_id,
     authority=config.authority,
-    client_credential=config.client_credential,
+    client_credential=config.client_credential
 )
 
 #################################
@@ -112,7 +112,7 @@ async def validate(request: Request):
 @app.get("/add-account")
 async def add_account():
     login_url = app_msal.get_authorization_request_url(
-        config.scopes, redirect_uri='http://localhost:5555/get_token')
+        config.scopes, redirect_uri='http://localhost:5555/get_token', prompt="select_account")
     return RedirectResponse(login_url)
 
 

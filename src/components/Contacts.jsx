@@ -28,7 +28,7 @@ import Drawer from "./Drawer";
 import { addNewCompany, getCompanyDetails } from "../apis/apis";
 import { useCompaniesStore } from "../states/CompaniesStore";
 import { CustomAlert } from "./Alert";
-import { getInitials } from "../utils/common";
+import { getInitials, openInNewTab } from "../utils/common";
 
 const Contacts = () => {
   const [activeTab, setActiveTab] = useState("about");
@@ -154,6 +154,17 @@ const Contacts = () => {
                         <a href="#">Ralph Edwards</a>
                       </span>
                     </Typography>
+                    <div className="flex gap-4 mt-1">
+                      <IconButton size="sm" onClick={()=> openInNewTab(`//linkedin.com/${companies.selectedCompany.linkedin}`)} className="rounded bg-[#0077b5] hover:shadow-[#0077b5]/20 focus:shadow-[#0077b5]/20 active:shadow-[#0077b5]/10">
+                        <i className="fab fa-linkedin text-lg" />
+                      </IconButton>
+                      <IconButton size="sm" onClick={()=> openInNewTab(`//twitter.com/${companies.selectedCompany.twitter}`)} className="rounded bg-[#1DA1F2] hover:shadow-[#1DA1F2]/20 focus:shadow-[#1DA1F2]/20 active:shadow-[#1DA1F2]/10">
+                        <i className="fab fa-twitter text-lg" />
+                      </IconButton>
+                      <IconButton size="sm" onClick={()=> openInNewTab(`//facebook.com/${companies.selectedCompany.facebook}`)} className="rounded bg-[#316FF6] hover:shadow-[#316FF6]/20 focus:shadow-[#316FF6]/20 active:shadow-[#316FF6]/10">
+                        <i className="fab fa-facebook text-lg" />
+                      </IconButton>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -707,7 +718,7 @@ const NewCompany = ({ openRight, setOpenRight }) => {
 function AboutCompanyCard() {
   const companyDetails = useCompaniesStore.getState().selectedCompany;
   const [open, setOpen] = useState(0);
- 
+
   const handleOpen = (value) => setOpen(open === value ? 0 : value);
 
   function Icon({ id, open }) {
@@ -718,9 +729,15 @@ function AboutCompanyCard() {
         viewBox="0 0 24 24"
         strokeWidth={2}
         stroke="currentColor"
-        className={`${id === open ? "rotate-180" : ""} h-5 w-5 transition-transform`}
+        className={`${
+          id === open ? "rotate-180" : ""
+        } h-5 w-5 transition-transform`}
       >
-        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M19.5 8.25l-7.5 7.5-7.5-7.5"
+        />
       </svg>
     );
   }
