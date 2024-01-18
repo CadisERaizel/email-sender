@@ -333,6 +333,19 @@ const NewCompany = ({ openRight, setOpenRight }) => {
     }
   };
 
+  const [enableEditing, setEnableEditing] = useState(false);
+
+  const handleEditClick = () => {
+    setEnableEditing(!enableEditing);
+  };
+
+  const handleInputChange = (e) =>{
+    setCompanyDetails({
+      ...companyDetails,
+      [e.target.name]: e.target.value
+    })
+  }
+
   return (
     <Drawer openRight={openRight} setOpenRight={handleSetOpenRight}>
       <div className="p-2 mb-4">
@@ -381,10 +394,14 @@ const NewCompany = ({ openRight, setOpenRight }) => {
         <div className={`w-full`}>
           <Typography
             variant="h6"
-            className="w-full border-b uppercase border-slate-100 p-1 pl-0 mb-3"
+            className="flex items-center justify-between w-full border-b uppercase border-slate-100 p-1 pl-0 mb-3"
           >
-            General Details
+            <span className="flex items-center">General Details</span>
+              <Button size="sm" variant="filled" className="text-right" onClick={handleEditClick}>
+                Enter Manually
+              </Button>
           </Typography>
+          
           <div className="w-full flex-1 mb-6">
             <div class="mb-4">
               <label class="block uppercase tracking-wide text-xs font-bold">
@@ -395,8 +412,9 @@ const NewCompany = ({ openRight, setOpenRight }) => {
                 type="text"
                 name="name"
                 placeholder="codetru"
-                disabled
+                disabled = {!enableEditing}
                 value={companyDetails.name}
+                onChange={handleInputChange}
               />
             </div>
             <div className="w-full inline-flex gap-3 pb-4">
@@ -409,8 +427,9 @@ const NewCompany = ({ openRight, setOpenRight }) => {
                   type="text"
                   name="revenue"
                   placeholder="over-1b"
-                  disabled
+                  disabled ={!enableEditing}
                   value={companyDetails.revenue}
+                  onChange={handleInputChange}
                 />
               </div>
               <div class="flex-1">
@@ -422,8 +441,9 @@ const NewCompany = ({ openRight, setOpenRight }) => {
                   type="text"
                   name="year_founded"
                   placeholder="1998"
-                  disabled
+                  disabled ={!enableEditing}
                   value={companyDetails.year_founded}
+                  onChange={handleInputChange}
                 ></input>
               </div>
             </div>
@@ -437,8 +457,9 @@ const NewCompany = ({ openRight, setOpenRight }) => {
                   type="text"
                   name="address_street"
                   placeholder="555 Roadrunner Lane"
-                  disabled
+                  disabled ={!enableEditing}
                   value={companyDetails.address_street}
+                  onChange={handleInputChange}
                 />
               </div>
               <div class="flex-1">
@@ -450,8 +471,9 @@ const NewCompany = ({ openRight, setOpenRight }) => {
                   type="text"
                   name="address_city"
                   placeholder="Round Rock"
-                  disabled
+                  disabled ={!enableEditing}
                   value={companyDetails.address_city}
+                  onChange={handleInputChange}
                 ></input>
               </div>
             </div>
@@ -465,8 +487,9 @@ const NewCompany = ({ openRight, setOpenRight }) => {
                   type="text"
                   name="address_state"
                   placeholder="Texas"
-                  disabled
+                  disabled={!enableEditing}
                   value={companyDetails.address_state}
+                  onChange={handleInputChange}
                 ></input>
               </div>
               <div class="flex-1">
@@ -478,8 +501,9 @@ const NewCompany = ({ openRight, setOpenRight }) => {
                   type="text"
                   name="address_country"
                   placeholder="United States"
-                  disabled
+                  disabled= {!enableEditing}
                   value={companyDetails.address_country}
+                  onChange={handleInputChange}
                 />
               </div>
             </div>
@@ -493,8 +517,9 @@ const NewCompany = ({ openRight, setOpenRight }) => {
                   type="text"
                   name="address_postal"
                   placeholder="OL99QY"
-                  disabled
+                  disabled = {!enableEditing}
                   value={companyDetails.address_postal}
+                  onChange={handleInputChange}
                 ></input>
               </div>
               <div class="flex-1">
@@ -506,8 +531,9 @@ const NewCompany = ({ openRight, setOpenRight }) => {
                   type="text"
                   name="lat"
                   placeholder="30.0455542"
-                  disabled
+                  disabled={!enableEditing}
                   value={companyDetails.lat}
+                  onChange={handleInputChange}
                 />
               </div>
             </div>
@@ -521,8 +547,9 @@ const NewCompany = ({ openRight, setOpenRight }) => {
                   type="text"
                   name="lon"
                   placeholder="-99.1405168"
-                  disabled
+                  disabled={!enableEditing}
                   value={companyDetails.lon}
+                  onChange={handleInputChange}
                 />
               </div>
               <div class="flex-1"></div>
@@ -544,8 +571,9 @@ const NewCompany = ({ openRight, setOpenRight }) => {
                 type="tel"
                 name="phone"
                 placeholder="(555) 555-5555"
-                disabled
+                disabled={!enableEditing}
                 value={companyDetails.phone}
+                onChange={handleInputChange}
               />
             </div>
             <div class="mb-4">
@@ -557,8 +585,9 @@ const NewCompany = ({ openRight, setOpenRight }) => {
                 type="url"
                 name="url"
                 placeholder="codetru.com"
-                disabled
+                disabled={!enableEditing}
                 value={companyDetails.url}
+                onChange={handleInputChange}
               />
             </div>
             <div class="mb-4">
@@ -570,8 +599,9 @@ const NewCompany = ({ openRight, setOpenRight }) => {
                 type="email"
                 name="email"
                 placeholder="contact@codetru.com"
-                disabled
+                disabled={!enableEditing}
                 value={companyDetails.email}
+                onChange={handleInputChange}
               />
             </div>
           </div>
@@ -595,8 +625,9 @@ const NewCompany = ({ openRight, setOpenRight }) => {
                   type="text"
                   name="facebook"
                   placeholder="acmeco"
-                  disabled
+                  disabled={!enableEditing}
                   value={companyDetails.facebook}
+                  onChange={handleInputChange}
                 />
               </div>
             </div>
@@ -611,10 +642,11 @@ const NewCompany = ({ openRight, setOpenRight }) => {
                 <input
                   class="flex-1 shadow-inner p-2 border"
                   type="text"
-                  name="instagram"
+                  name="twitter"
                   placeholder="acmeco"
-                  disabled
+                  disabled={!enableEditing}
                   value={companyDetails.twitter}
+                  onChange={handleInputChange}
                 />
               </div>
             </div>
@@ -629,10 +661,11 @@ const NewCompany = ({ openRight, setOpenRight }) => {
                 <input
                   class="flex-1 shadow-inner p-2 border"
                   type="text"
-                  name="instagram"
+                  name="linkedin"
                   placeholder="acmeco"
-                  disabled
+                  disabled={!enableEditing}
                   value={companyDetails.linkedin}
+                  onChange={handleInputChange}
                 />
               </div>
             </div>
@@ -645,11 +678,13 @@ const NewCompany = ({ openRight, setOpenRight }) => {
           </Typography>
           <div className="w-full flex-1">
             <textarea
+              name="description"
               class="w-full shadow-inner p-4 border resize-none"
               placeholder="We build fine acmes."
               rows="6"
-              disabled
+              disabled={!enableEditing}
               value={companyDetails.description}
+              onChange={handleInputChange}
             ></textarea>
           </div>
         </div>
