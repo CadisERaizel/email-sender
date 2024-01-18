@@ -27,7 +27,7 @@ const ContactsScreen = () => {
 
   return (
     <div className="h-full">
-      <Tabs value={activeTab} className="h-full">
+      <Tabs value={activeTab} className="flex flex-col h-full">
         <div className="flex justify-between">
           <div className="w-1/4">
             <TabsHeader

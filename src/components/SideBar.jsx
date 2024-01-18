@@ -12,7 +12,7 @@ import { HashRouter as Router, Route, Link } from "react-router-dom";
 const SideBar = () => {
   // const navigate = useNavigate()
   return (
-    <Card className="h-[calc(100vh-66px)] w-full max-w-[5rem] p-4 pl-0 pr-0 justify-center rounded-none shadow-2xl shadow-blue-gray-900/20">
+    <Card className="h-full w-full max-w-[5rem] p-4 pl-0 pr-0 justify-center rounded-none shadow-2xl shadow-blue-gray-900/20">
       <List className="min-w-0 gap-8">
         <Link to="/inbox">
           <ListItem className="justify-center">

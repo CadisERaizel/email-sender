@@ -34,7 +34,7 @@ class AppConfig(MSALClientConfig):
 
 config = AppConfig(_env_file="microsoft.env")
 app = FastAPI()
-auth = MSALAuthorization(client_config=config)
+auth = MSALAuthorization(client_config=config, return_to_path='/login')
 
 ################################
 
@@ -468,16 +468,84 @@ def list_emails_route(is_opened: bool | None = None):
     emails = list_emails(is_opened)
     return emails
 
-@app.get('/getComapany')
-async def getComapany(company_domain: str):
+@app.get('/getCompany')
+async def getCompany(company_domain: str):
     async with httpx.AsyncClient() as client:
         resp = await client.get(f'https://api.thecompaniesapi.com/v1/companies/{company_domain}?token=dNw3bpdh')
-    return resp
+    return resp.json()
 
 @app.get("/")
 def read_root():
     return {"message": "success"}
 
+
+########################################################################
+########################################################################
+###################### Company Details #################################
+
+@app.post("/create-company/")
+def create_company_route(company: CompanyDetailsPydantic):
+    try:
+        create_company_details(company.model_dump())
+        return {"message": "Company created successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/get-company/{company_id}")
+def get_company_route(company_id: uuid.UUID):
+    company = get_company_details(company_id)
+    if company:
+        return company
+    else:
+        raise HTTPException(status_code=404, detail="Company not found")
+
+@app.put("/update-company/{company_id}")
+def update_company_route(company_id: uuid.UUID, updated_company: CompanyDetailsPydantic):
+    try:
+        update_company_details(company_id, updated_company)
+        return {"message": "Company updated successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.delete("/delete-company/{company_id}")
+def delete_company_route(company_id: uuid.UUID):
+    delete_company_details(company_id)
+    return {"message": "Company deleted successfully"}
+
+@app.get("/list-companies/")
+def list_companies_route():
+    return list_all_companies()
+
+
+@app.post('/contacts', response_model=str)
+def create_contact_route(contact_data: dict):
+    result = create_contact(contact_data)
+    return result
+
+@app.get('/contacts/{contact_id}', response_model=dict)
+def get_contact_route(contact_id: uuid.UUID):
+    contact = get_contact(contact_id)
+    if contact:
+        return contact.__dict__
+    else:
+        raise HTTPException(status_code=404, detail="Contact not found")
+
+@app.put('/contacts/{contact_id}', response_model=str)
+def update_contact_route(contact_id: uuid.UUID, updated_contact_data: dict):
+    result = update_contact(contact_id, updated_contact_data)
+    return result
+
+@app.delete('/contacts/{contact_id}', response_model=str)
+def delete_contact_route(contact_id: uuid.UUID):
+    result = delete_contact(contact_id)
+    return result
+
+@app.get('/contacts', response_model=list)
+def list_contacts_route():
+    contacts = list_contacts()
+    return {"contacts": contacts}
+
+################################################################################################
 
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=5555, reload=True)

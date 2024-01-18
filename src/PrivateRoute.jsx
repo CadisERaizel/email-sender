@@ -13,9 +13,9 @@ const PrivateRoute = () => {
     return (
         <div className="flex flex-col font-segoe">
             <TopNavBar setSelectedUser={setSelectedUser} />
-            <div className="flex">
+            <div className="flex h-[calc(100vh-66px)]">
                 <SideBar />
-                <div className="mt-4 p-4 pb-0 w-full h-[calc(100vh-80px)]">
+                <div className="p-4 pb-0 w-full h-full">
                     <Routes>
                         <Route path="/" element={<CampaignsScreen />} />
                         <Route path="/inbox" element={<InboxScreen />} />

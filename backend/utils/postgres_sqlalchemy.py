@@ -2,6 +2,7 @@ from sqlalchemy import create_engine, Column, String, DateTime, Boolean, Foreign
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import declarative_base, relationship
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.exc import IntegrityError
 import os
 from dotenv import load_dotenv
 import uuid
@@ -20,7 +21,6 @@ DATABASE_PORT = os.environ.get('DATABASE_PORT')
 
 engine = create_engine(
     f'postgresql://{DATABASE_USER}:{DATABASE_PASSWORD}@{DATABASE_HOST}:{DATABASE_PORT}/{DATABASE_NAME}')
-Session = sessionmaker(bind=engine)
 Base = declarative_base()
 
 
@@ -163,6 +163,7 @@ def resource_path(relative_path):
 
 
 def get_db_session():
+    Session = sessionmaker(bind=engine)
     return Session()
 
 
@@ -176,6 +177,7 @@ def create_user(user_data: dict) -> str:
         new_user = User(**user_data)
         session.add(new_user)
         session.commit()
+        session.close()
         return "User created successfully"
     except Exception as e:
         session.rollback()
@@ -184,7 +186,9 @@ def create_user(user_data: dict) -> str:
 
 def get_user(user_id: str) -> User:
     session = get_db_session()
-    return session.query(User).filter_by(id=user_id).first()
+    data = session.query(User).filter_by(id=user_id).first()
+    session.close()
+    return data
 
 
 def update_user(user_id, updated_user_data):
@@ -195,6 +199,7 @@ def update_user(user_id, updated_user_data):
             for key, value in updated_user_data.items():
                 setattr(user, key, value)
             session.commit()
+            session.close()
             return "User updated successfully"
         else:
             return "User not found"
@@ -210,6 +215,7 @@ def delete_user(user_id):
         if user:
             session.delete(user)
             session.commit()
+            session.close()
             return "User deleted successfully"
         else:
             return "User not found"
@@ -231,6 +237,7 @@ def list_users():
             'login_type': user.login_type
         }
         user_list.append(user_dict)
+    session.close()
     return user_list
 
 def create_associated_user(user_data: dict):
@@ -238,11 +245,14 @@ def create_associated_user(user_data: dict):
     new_user = AssiociatedUser(**user_data)
     session.add(new_user)
     session.commit()
+    session.close()
 
 # Read
 def get_associated_user(user_id: str):
     session = get_db_session()
-    return session.query(AssiociatedUser).filter_by(id=user_id).first()
+    data = session.query(AssiociatedUser).filter_by(id=user_id).first()
+    session.close()
+    return data
 
 # Update
 def update_associated_user(user_id: str, new_data: dict):
@@ -252,6 +262,7 @@ def update_associated_user(user_id: str, new_data: dict):
         for key, value in new_data.items():
             setattr(user, key, value)
         session.commit()
+    session.close()
 
 # Delete
 def delete_associated_user(user_id: str):
@@ -260,6 +271,8 @@ def delete_associated_user(user_id: str):
     if user:
         session.delete(user)
         session.commit()
+    session.close()
+    
 
 # List all users
 def list_all_associated_users():
@@ -276,7 +289,7 @@ def list_all_associated_users():
             'login_type': user.login_type,
         }
         user_list.append(user_dict)
-
+    session.close()
     return user_list
 
 
@@ -286,7 +299,9 @@ def create_campaign(campaign_data):
         new_campaign = Campaign(**campaign_data)
         session.add(new_campaign)
         session.commit()
+        session.close()
         return "Campaign created successfully"
+       
     except Exception as e:
         session.rollback()
         raise e
@@ -294,7 +309,9 @@ def create_campaign(campaign_data):
 
 def get_campaign(campaign_id):
     session = get_db_session()
-    return session.query(Campaign).filter_by(id=campaign_id).first()
+    data = session.query(Campaign).filter_by(id=campaign_id).first()
+    session.close()
+    return data
 
 
 def update_campaign(campaign_id, updated_campaign_data):
@@ -305,6 +322,7 @@ def update_campaign(campaign_id, updated_campaign_data):
             for key, value in updated_campaign_data.items():
                 setattr(campaign, key, value)
             session.commit()
+            session.close()
             return "Campaign updated successfully"
         else:
             return "Campaign not found"
@@ -320,6 +338,7 @@ def delete_campaign(campaign_id):
         if campaign:
             session.delete(campaign)
             session.commit()
+            session.close()
             return "Campaign deleted successfully"
         else:
             return "Campaign not found"
@@ -342,6 +361,7 @@ def get_all_campaigns():
             'template_id': str(campaign.template_id),
         }
         campaigns_list.append(campaign_dict)
+    session.close()
     return campaigns_list
 
 
@@ -363,7 +383,7 @@ def get_campaign_info_with_recipients(campaign_id):
         .filter(Campaign.id == campaign_id)
         .all()
     )
-
+    session.close()
     if result:
         campaign_info = {
             "campaign_id": str(result[0].id),
@@ -401,6 +421,7 @@ def create_recipient(campaign_id, email, first_name=None, last_name=None, status
         )
         session.add(new_recipient)
         session.commit()
+        session.close()
         return "Recipient created successfully"
     except Exception as e:
         session.rollback()
@@ -409,7 +430,9 @@ def create_recipient(campaign_id, email, first_name=None, last_name=None, status
 
 def get_recipient(recipient_id):
     session = get_db_session()
-    return session.query(Recipient).filter_by(id=recipient_id).first()
+    data = session.query(Recipient).filter_by(id=recipient_id).first()
+    session.close()
+    return data
 
 
 def update_recipient(recipient_id, updated_recipient_data):
@@ -420,6 +443,7 @@ def update_recipient(recipient_id, updated_recipient_data):
             for key, value in updated_recipient_data.items():
                 setattr(recipient, key, value)
             session.commit()
+            session.close()
             return "Recipient updated successfully"
         else:
             return "Recipient not found"
@@ -435,6 +459,7 @@ def delete_recipient(recipient_id):
         if recipient:
             session.delete(recipient)
             session.commit()
+            session.close()
             return "Recipient deleted successfully"
         else:
             return "Recipient not found"
@@ -458,20 +483,24 @@ def get_recipients_for_campaign(campaign_id):
             'status': recipient.status,
         }
         recipients_list.append(recipient_dict)
+    session.close()
     return recipients_list
 
 
 def save_upload_file(filename, path, upload_time):
+    session = get_db_session()
     try:
-        session = get_db_session()
+        
         file_id = str(uuid.uuid4())
         new_file = Files(id=file_id, filename=filename,
                         path=path, upload_time=upload_time)
         session.add(new_file)
         session.commit()
+       
         return "File saved successfully"
     except Exception as e:
         session.rollback()
+        session.close()
         raise e
 
 
@@ -487,12 +516,14 @@ def get_all_files():
             'upload_time': file.upload_time,
         }
         files_list.append(file_dict)
+    session.close()
     return files_list
 
 
 def get_file_by_id(file_id):
     session = get_db_session()
     file = session.query(Files).filter_by(id=file_id).first()
+    session.close()
     if file:
         file_dict = {
             'id': str(file.id),
@@ -513,9 +544,11 @@ def create_email_template(template_name, subject, body):
             id=template_id, template_name=template_name, subject=subject, body=body)
         session.add(new_template)
         session.commit()
+        session.close()
         return {"template_id": template_id, "message": "Email template created successfully"}
     except Exception as e:
         session.rollback()
+        session.close()
         raise e
 
 
@@ -531,12 +564,14 @@ def get_all_email_templates():
             'body': template.body,
         }
         templates_list.append(template_dict)
+    session.close()
     return templates_list
 
 
 def get_email_template_by_id(template_id):
     session = get_db_session()
     template = session.query(EmailTemplate).filter_by(id=template_id).first()
+    session.close()
     if template:
         template_dict = {
             'id': str(template.id),
@@ -559,11 +594,13 @@ def update_email_template(template_id, template_name, subject, body):
             template.subject = subject
             template.body = body
             session.commit()
+            session.close()
             return {"message": "Email template updated successfully"}
         else:
             return {"message": "Email template not found"}
     except Exception as e:
         session.rollback()
+        session.close()
         raise e
 
 
@@ -575,11 +612,13 @@ def delete_email_template(template_id):
         if template:
             session.delete(template)
             session.commit()
+            session.close()
             return {"message": "Email template deleted successfully"}
         else:
             return {"message": "Email template not found"}
     except Exception as e:
         session.rollback()
+        session.close()
         raise e
 
 
@@ -597,16 +636,19 @@ def create_email(email_data):
         )
         session.add(new_email)
         session.commit()
+        session.close()
         return "Email created successfully"
     except Exception as e:
         session.rollback()
+        session.close()
         raise e
 
 
 def get_email(email_id):
     session = get_db_session()
-    return session.query(EmailSent).filter_by(id=email_id).first()
-
+    data = session.query(EmailSent).filter_by(id=email_id).first()
+    session.close()
+    return data
 
 def update_email(email_id, updated_email_data):
     try:
@@ -616,11 +658,13 @@ def update_email(email_id, updated_email_data):
             for key, value in updated_email_data.items():
                 setattr(email, key, value)
             session.commit()
+            session.close()
             return "Email updated successfully"
         else:
             return "Email not found"
     except Exception as e:
         session.rollback()
+        session.close()
         raise e
 
 
@@ -631,11 +675,13 @@ def delete_email(email_id):
         if email:
             session.delete(email)
             session.commit()
+            session.close()
             return "Email deleted successfully"
         else:
             return "Email not found"
     except Exception as e:
         session.rollback()
+        session.close()
         raise e
 
 
@@ -660,6 +706,7 @@ def list_emails(is_opened):
             'notification_popped': email.notification_popped
         }
         emails_list.append(email_dict)
+    session.close()
     return emails_list
 
 
@@ -671,14 +718,18 @@ def create_company_details(company_data: dict) -> str:
         new_company = CompanyDetails(**company_data)
         session.add(new_company)
         session.commit()
+        session.close()
         return "Company details created successfully"
     except Exception as e:
         session.rollback()
+        session.close()
         raise e
 
 def get_company_details(company_id: uuid.UUID) -> CompanyDetails:
     session = get_db_session()
-    return session.query(CompanyDetails).filter_by(id=company_id).first()
+    data = session.query(CompanyDetails).filter_by(id=company_id).first()
+    session.close()
+    return data
 
 def update_company_details(company_id: uuid.UUID, updated_data: dict) -> str:
     try:
@@ -688,11 +739,13 @@ def update_company_details(company_id: uuid.UUID, updated_data: dict) -> str:
             for key, value in updated_data.items():
                 setattr(company, key, value)
             session.commit()
+            session.close()
             return "Company details updated successfully"
         else:
             return "Company not found"
     except Exception as e:
         session.rollback()
+        session.close()
         raise e
 
 def delete_company_details(company_id: uuid.UUID) -> str:
@@ -702,11 +755,13 @@ def delete_company_details(company_id: uuid.UUID) -> str:
         if company:
             session.delete(company)
             session.commit()
+            session.close()
             return "Company details deleted successfully"
         else:
             return "Company not found"
     except Exception as e:
         session.rollback()
+        session.close()
         raise e
     
 def list_all_companies() -> List[dict]:
@@ -738,5 +793,83 @@ def list_all_companies() -> List[dict]:
             'logo_url': company.logo_url,
         }
         companies_list.append(company_dict)
-
+    session.close()
     return companies_list
+
+def create_contact(contact_data: dict) -> str:
+    try:
+        session = get_db_session()
+        new_contact = ContactDetails(**contact_data)
+        session.add(new_contact)
+        session.commit()
+        session.close()
+        return "Contact created successfully"
+    except IntegrityError as e:
+        session.rollback()
+        session.close()
+        raise IntegrityError("Duplicate entry or invalid company_id")
+    except Exception as e:
+        session.rollback()
+        session.close()
+        raise e
+
+
+def get_contact(contact_id: uuid.UUID) -> ContactDetails:
+    session = get_db_session()
+    data = session.query(ContactDetails).filter_by(id=contact_id).first()
+    session.close()
+    return data
+
+
+def update_contact(contact_id: uuid.UUID, updated_contact_data: dict):
+    try:
+        session = get_db_session()
+        contact = get_contact(session, contact_id)
+        if contact:
+            for key, value in updated_contact_data.items():
+                setattr(contact, key, value)
+            session.commit()
+            session.close()
+            return "Contact updated successfully"
+        else:
+            return "Contact not found"
+    except Exception as e:
+        session.rollback()
+        session.close()
+        raise e
+
+
+def delete_contact(contact_id: uuid.UUID):
+    try:
+        session = get_db_session()
+        contact = get_contact(session, contact_id)
+        if contact:
+            session.delete(contact)
+            session.commit()
+            session.close()
+            return "Contact deleted successfully"
+        else:
+            return "Contact not found"
+    except Exception as e:
+        session.rollback()
+        session.close()
+        raise e
+
+
+def list_contacts():
+    session = get_db_session()
+    contacts = session.query(ContactDetails).all()
+    contact_list = []
+    for contact in contacts:
+        contact_dict = {
+            'id': str(contact.id),
+            'company_id': str(contact.company_id),
+            'fullname': contact.fullname,
+            'email': contact.email,
+            'contact': contact.contact,
+            'position': contact.position,
+            'additional_info': contact.additional_info
+        }
+        contact_list.append(contact_dict)
+    session.close()
+    return contact_list

@@ -41,16 +41,19 @@ export const getDraft = async () => {
 
 export const getNextMessages = async (dataLink) => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/fetchMore`, {dataLink: String(dataLink)},{
-      withCredentials: true,
-    });
+    const response = await axios.post(
+      `${API_BASE_URL}/fetchMore`,
+      { dataLink: String(dataLink) },
+      {
+        withCredentials: true,
+      }
+    );
     console.log(response);
     return response.data;
   } catch (error) {
     console.error("Error fetching Inbox", error);
   }
 };
-
 
 /**************************************** */
 export const validateUser = async () => {
@@ -67,10 +70,14 @@ export const validateUser = async () => {
 
 export const addAssociateAccount = async (associated_user) => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/associate-account`, { associated_user: associated_user}, {
-      withCredentials: true,
-    });
-    console.log(response.data)
+    const response = await axios.post(
+      `${API_BASE_URL}/associate-account`,
+      { associated_user: associated_user },
+      {
+        withCredentials: true,
+      }
+    );
+    console.log(response.data);
     return response.data;
   } catch (error) {
     console.error("Error adding user account", error);
@@ -113,13 +120,51 @@ export const getOpenedMails = async () => {
 
 export const getCompanyDetails = async (company_domain) => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/getComapany?company_domain=${company_domain}`, {
-      withCredentials: true,
-    });
-    console.log(response.data)
+    const response = await axios.get(
+      `${API_BASE_URL}/getCompany?company_domain=${company_domain}`,
+      {
+        withCredentials: true,
+      }
+    );
+    console.log(response.data);
     return response.data;
   } catch (error) {
     console.error("Error fetching company details", error);
+    return 500;
+  }
+};
+
+////////////////////////////////////////////////////////////////
+/////// Companies Details ///////////////////////////
+export const addNewCompany = async (companyDetails) => {
+  try {
+    const response = await axios.post(
+      `${API_BASE_URL}/create-company/`,
+      { ...companyDetails },
+      {
+        withCredentials: true,
+      }
+    );
+    console.log(response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error creating new company", error);
     return 500
+  }
+};
+
+export const getCompaniesList = async () => {
+  try {
+    const response = await axios.get(
+      `${API_BASE_URL}/list-companies/`,
+      {
+        withCredentials: true,
+      }
+    );
+    console.log(response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching company list", error);
+    return 500;
   }
 };

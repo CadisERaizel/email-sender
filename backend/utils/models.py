@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, UUID4
+from pydantic import BaseModel, EmailStr, UUID4, AnyUrl
 from datetime import date, time, datetime
 from dataclasses import dataclass
 
@@ -65,3 +65,24 @@ class DataLink(BaseModel):
 
 class UserInfo(BaseModel):
     access_token: str
+
+class CompanyDetailsPydantic(BaseModel):
+    name: str
+    address_street: str = None
+    address_city: str = None
+    address_state: str = None
+    address_country: str = None
+    address_postal: str = None
+    lat: str = None
+    lon: str = None
+    phone: str = None
+    url: str = None
+    revenue: str = None
+    total_employees: str = None
+    year_founded: str = None
+    email_patterns: str = None
+    facebook: str = None
+    twitter: str = None
+    linkedin: str = None
+    description: str = None
+    logo_url: str = None
